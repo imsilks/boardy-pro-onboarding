@@ -3,12 +3,15 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Calendar } from "lucide-react";
+import { CheckCircle, Calendar, RefreshCw } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
+import { toast } from "sonner";
 
 const Success = () => {
   const location = useLocation();
   const [contactId, setContactId] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
+  const [connectionError, setConnectionError] = useState(false);
   
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
@@ -20,6 +23,37 @@ const Success = () => {
     const id = params.get("contactId");
     setContactId(id);
   }, [location]);
+
+  const handleConnectCalendar = async () => {
+    if (!contactId) {
+      toast.error("Contact ID is missing. Please try again.");
+      return;
+    }
+
+    setConnecting(true);
+    setConnectionError(false);
+
+    try {
+      // Direct API URL as provided
+      const cronofyUrl = `https://boardy-server-v36-production.up.railway.app/api/cronofy/auth/${contactId}`;
+      console.log("Attempting to connect to Cronofy:", cronofyUrl);
+      
+      // Redirect the user to the Cronofy auth endpoint
+      window.location.href = cronofyUrl;
+      
+      // Set a timeout to show error message if redirect doesn't happen within 5 seconds
+      setTimeout(() => {
+        setConnectionError(true);
+        setConnecting(false);
+      }, 5000);
+      
+    } catch (error) {
+      console.error("Error connecting to Cronofy:", error);
+      toast.error("Unable to connect to calendar service. Please try again later.");
+      setConnectionError(true);
+      setConnecting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
@@ -55,18 +89,38 @@ const Success = () => {
               </div>
               
               <div className="w-full space-y-3">
-                <Button 
-                  className="w-full" 
-                  onClick={() => {
-                    // Try to redirect to Cronofy again if we have the contactId
-                    if (contactId) {
-                      window.location.href = `https://boardy-server-v36-production.up.railway.app/api/cronofy/auth/${contactId}`;
-                    }
-                  }}
-                >
-                  <Calendar className="mr-2" size={18} />
-                  Connect Calendar
-                </Button>
+                {connectionError ? (
+                  <>
+                    <div className="px-4 py-3 mb-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
+                      <p>There was an issue connecting to the calendar service. Please try again.</p>
+                    </div>
+                    <Button 
+                      className="w-full" 
+                      onClick={handleConnectCalendar}
+                    >
+                      <RefreshCw className="mr-2" size={18} />
+                      Retry Calendar Connection
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    className="w-full" 
+                    onClick={handleConnectCalendar}
+                    disabled={connecting}
+                  >
+                    {connecting ? (
+                      <>
+                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="mr-2" size={18} />
+                        Connect Calendar
+                      </>
+                    )}
+                  </Button>
+                )}
                 
                 <Button 
                   variant="outline" 
