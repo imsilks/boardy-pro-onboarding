@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { toast } from "sonner";
 import PhoneInput from "@/components/PhoneInput";
@@ -6,7 +7,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { fetchContactByPhone, getCronofyAuthUrl, isUrlReachable } from "@/lib/api";
 import { useFadeIn } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
-import { Calendar, RefreshCw, User, Phone as PhoneIcon, Edit, Check } from "lucide-react";
+import { Calendar, RefreshCw, User, Phone as PhoneIcon, Edit, Check, Type, Palette, Bold, Italic } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 const Index = () => {
@@ -18,7 +19,15 @@ const Index = () => {
   const [lookupPhone, setLookupPhone] = useState<string | null>(null);
   const [subtitle, setSubtitle] = useState("Enter your phone number to connect your calendars");
   const [isEditingSubtitle, setIsEditingSubtitle] = useState(false);
-
+  
+  // New state for subtitle styling
+  const [subtitleStyle, setSubtitleStyle] = useState({
+    color: "text-gray-600",
+    size: "text-lg",
+    weight: "font-normal",
+    italic: false
+  });
+  
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInSubtitle = useFadeIn("down", 200);
@@ -38,6 +47,46 @@ const Index = () => {
   // Handle subtitle change
   const handleSubtitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSubtitle(e.target.value);
+  };
+  
+  // Handle subtitle style changes
+  const updateSubtitleStyle = (property: string, value: string) => {
+    setSubtitleStyle(prev => ({
+      ...prev,
+      [property]: value
+    }));
+  };
+  
+  // Color presets for the subtitle
+  const colorOptions = [
+    { name: "Gray", class: "text-gray-600" },
+    { name: "Blue", class: "text-blue-600" },
+    { name: "Green", class: "text-green-600" },
+    { name: "Purple", class: "text-purple-600" },
+    { name: "Red", class: "text-red-600" }
+  ];
+  
+  // Size options for the subtitle
+  const sizeOptions = [
+    { name: "Small", class: "text-base" },
+    { name: "Medium", class: "text-lg" },
+    { name: "Large", class: "text-xl" }
+  ];
+
+  // Weight options
+  const toggleWeight = () => {
+    setSubtitleStyle(prev => ({
+      ...prev,
+      weight: prev.weight === "font-normal" ? "font-bold" : "font-normal"
+    }));
+  };
+  
+  // Toggle italic
+  const toggleItalic = () => {
+    setSubtitleStyle(prev => ({
+      ...prev,
+      italic: !prev.italic
+    }));
   };
 
   const handlePhoneSubmit = async (phone: string) => {
@@ -138,28 +187,94 @@ const Index = () => {
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-3">Welcome to Boardy Pro</h1>
           
-          {/* Editable subtitle */}
-          <div className="flex items-center justify-center" style={fadeInSubtitle}>
+          {/* Editable subtitle with styling */}
+          <div className="flex flex-col items-center justify-center" style={fadeInSubtitle}>
             {isEditingSubtitle ? (
-              <div className="flex items-center space-x-2 max-w-sm">
-                <Input 
-                  value={subtitle} 
-                  onChange={handleSubtitleChange} 
-                  className="text-center text-lg py-1"
-                  autoFocus
-                />
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  onClick={handleSaveSubtitle} 
-                  className="h-8 w-8 text-green-600"
-                >
-                  <Check size={16} />
-                </Button>
+              <div className="flex flex-col space-y-3 w-full max-w-sm">
+                <div className="flex items-center space-x-2">
+                  <Input 
+                    value={subtitle} 
+                    onChange={handleSubtitleChange} 
+                    className={`text-center py-1 ${subtitleStyle.size} ${subtitleStyle.color} ${subtitleStyle.weight} ${subtitleStyle.italic ? 'italic' : ''}`}
+                    autoFocus
+                  />
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={handleSaveSubtitle} 
+                    className="h-8 w-8 text-green-600"
+                  >
+                    <Check size={16} />
+                  </Button>
+                </div>
+                
+                {/* Styling controls */}
+                <div className="flex flex-col space-y-2 bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-gray-200 shadow-sm animate-fade-in">
+                  {/* Text color */}
+                  <div className="flex items-center space-x-2">
+                    <Palette size={14} className="text-gray-500" />
+                    <span className="text-xs text-gray-500">Color:</span>
+                    <div className="flex space-x-1">
+                      {colorOptions.map(color => (
+                        <button
+                          key={color.name}
+                          onClick={() => updateSubtitleStyle('color', color.class)}
+                          className={`w-5 h-5 rounded-full ${color.class.replace('text-', 'bg-')} 
+                            ${subtitleStyle.color === color.class ? 'ring-2 ring-offset-1 ring-blue-400' : 'opacity-70 hover:opacity-100'}`}
+                          title={color.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Text size */}
+                  <div className="flex items-center space-x-2">
+                    <Type size={14} className="text-gray-500" />
+                    <span className="text-xs text-gray-500">Size:</span>
+                    <div className="flex space-x-1">
+                      {sizeOptions.map(size => (
+                        <Button
+                          key={size.name}
+                          onClick={() => updateSubtitleStyle('size', size.class)}
+                          variant="ghost"
+                          size="sm"
+                          className={`h-6 px-2 py-0 text-xs ${subtitleStyle.size === size.class ? 'bg-blue-100 text-blue-700' : ''}`}
+                        >
+                          {size.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Text style */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-500">Style:</span>
+                    <div className="flex space-x-1">
+                      <Button
+                        onClick={toggleWeight}
+                        variant="ghost"
+                        size="sm"
+                        className={`h-6 w-6 p-0 ${subtitleStyle.weight === 'font-bold' ? 'bg-blue-100 text-blue-700' : ''}`}
+                      >
+                        <Bold size={14} />
+                      </Button>
+                      <Button
+                        onClick={toggleItalic}
+                        variant="ghost"
+                        size="sm"
+                        className={`h-6 w-6 p-0 ${subtitleStyle.italic ? 'bg-blue-100 text-blue-700' : ''}`}
+                      >
+                        <Italic size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="flex items-center group relative">
-                <p className="text-lg text-gray-600">{subtitle}</p>
+                <p className={`${subtitleStyle.color} ${subtitleStyle.size} ${subtitleStyle.weight} ${subtitleStyle.italic ? 'italic' : ''}`}>
+                  {subtitle}
+                </p>
                 <Button 
                   size="icon" 
                   variant="ghost" 
