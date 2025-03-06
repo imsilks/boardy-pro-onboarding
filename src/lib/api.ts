@@ -18,7 +18,8 @@ export const fetchContactByPhone = async (phone: string): Promise<Contact | null
   try {
     const formattedPhone = formatPhoneNumber(phone);
     
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/contacts?phone=eq.${encodeURIComponent(formattedPhone)}`, {
+    // Updated from 'contacts' to 'contact' to match the table name in Supabase
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/contact?phone=eq.${encodeURIComponent(formattedPhone)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
