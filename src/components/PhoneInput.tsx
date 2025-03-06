@@ -3,10 +3,11 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, ArrowRight, Check, AlertCircle, PlugZap } from "lucide-react";
+import { Phone, ArrowRight, Check, AlertCircle, PlugZap, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
+import { formatPhoneNumber } from "@/lib/api";
 
 interface PhoneInputProps {
   onSubmit: (phone: string) => void;
@@ -51,6 +52,11 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isPhoneValid()) {
+      // Show the formatted phone that will be used for the lookup
+      const formattedForLookup = formatPhoneNumber(phone.replace(/\D/g, ""));
+      toast.info(`Submitting phone: ${formattedForLookup}`);
+      console.log("Submitting formatted phone:", formattedForLookup);
+      
       onSubmit(phone.replace(/\D/g, ""));
     }
   };
@@ -89,6 +95,17 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
       toast.error("Failed to connect to Supabase. Check console for details.");
     } finally {
       setTestingConnection(false);
+    }
+  };
+
+  const showPhoneFormat = () => {
+    if (isPhoneValid()) {
+      const formattedForLookup = formatPhoneNumber(phone.replace(/\D/g, ""));
+      toast.info(`Your number will be formatted as: ${formattedForLookup}`, {
+        description: "This is the format we'll use to look up your account"
+      });
+    } else {
+      toast.info("Enter a valid phone number first");
     }
   };
 
@@ -137,6 +154,18 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           <p className="text-sm text-destructive animate-fade-in">
             Please enter a valid international phone number
           </p>
+        )}
+        {isPhoneValid() && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs px-2 h-6"
+            onClick={showPhoneFormat}
+          >
+            <Info size={12} className="mr-1" />
+            Show format for lookup
+          </Button>
         )}
       </div>
 

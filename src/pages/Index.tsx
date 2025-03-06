@@ -7,7 +7,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { fetchContactByPhone, getCronofyAuthUrl, isUrlReachable } from "@/lib/api";
 import { useFadeIn } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
-import { Calendar, RefreshCw } from "lucide-react";
+import { Calendar, RefreshCw, User, Phone as PhoneIcon } from "lucide-react";
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
@@ -15,6 +15,7 @@ const Index = () => {
   const [redirecting, setRedirecting] = useState(false);
   const [contact, setContact] = useState<{ id: string; fullName?: string } | null>(null);
   const [redirectError, setRedirectError] = useState(false);
+  const [lookupPhone, setLookupPhone] = useState<string | null>(null);
 
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
@@ -24,6 +25,8 @@ const Index = () => {
   const handlePhoneSubmit = async (phone: string) => {
     setLoading(true);
     setRedirectError(false);
+    setLookupPhone(phone);
+    
     try {
       console.log("Submitted phone number:", phone);
       
@@ -40,12 +43,26 @@ const Index = () => {
       console.log("Found contact:", contactResult);
       setContact(contactResult);
 
+      // Display contact details on success
+      const contactDetails = [
+        `Contact ID: ${contactResult.id}`,
+        contactResult.fullName ? `Name: ${contactResult.fullName}` : "Name: Not available",
+        `Phone: ${contactResult.phone || phone}`
+      ];
+      
+      toast.success(
+        "Account found!", 
+        { 
+          description: contactDetails.join('\n'),
+          duration: 5000
+        }
+      );
+
       // Get Cronofy auth URL with the contact ID and redirect
       const cronofyUrl = getCronofyAuthUrl(contactResult.id);
       console.log("Redirecting to:", cronofyUrl);
       
       setRedirecting(true);
-      toast.success("Account found! Redirecting to calendar connection...");
 
       // Check if the URL is reachable before redirecting
       const isReachable = await isUrlReachable(cronofyUrl);
@@ -125,6 +142,21 @@ const Index = () => {
                   <p className="text-gray-500 text-sm text-center mb-4">
                     The calendar connection service is currently unavailable. Please try again later.
                   </p>
+                  
+                  {contact && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-4 w-full mb-4">
+                      <h3 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
+                        <User size={16} className="mr-1" /> Contact Information
+                      </h3>
+                      <p className="text-xs text-blue-700">ID: {contact.id}</p>
+                      {contact.fullName && <p className="text-xs text-blue-700">Name: {contact.fullName}</p>}
+                      <p className="text-xs text-blue-700 flex items-center mt-1">
+                        <PhoneIcon size={14} className="mr-1" />
+                        <span>{lookupPhone}</span>
+                      </p>
+                    </div>
+                  )}
+                  
                   <div className="flex flex-col space-y-2 w-full">
                     <Button 
                       onClick={handleRetryRedirect}
@@ -152,6 +184,20 @@ const Index = () => {
                   <p className="text-gray-700 text-center font-medium">
                     Connecting to your calendar...
                   </p>
+                  
+                  {contact && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-4 w-full mt-2">
+                      <h3 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
+                        <User size={16} className="mr-1" /> Account Found
+                      </h3>
+                      <p className="text-xs text-blue-700">ID: {contact.id}</p>
+                      {contact.fullName && <p className="text-xs text-blue-700">Name: {contact.fullName}</p>}
+                      <p className="text-xs text-blue-700 flex items-center mt-1">
+                        <PhoneIcon size={14} className="mr-1" />
+                        <span>{lookupPhone}</span>
+                      </p>
+                    </div>
+                  )}
                 </div>
               )
             ) : (
