@@ -30,24 +30,13 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     const digits = phone.replace(/\D/g, "");
     let result = "";
     
+    // Always start with "+" for international format
     if (digits.length > 0) {
       result = "+";
       
-      if (digits.length > 0) {
-        result += digits.slice(0, Math.min(digits.length, 1));
-      }
-      
-      if (digits.length > 1) {
-        result += " (" + digits.slice(1, Math.min(digits.length, 4));
-      }
-      
-      if (digits.length > 4) {
-        result += ") " + digits.slice(4, Math.min(digits.length, 7));
-      }
-      
-      if (digits.length > 7) {
-        result += "-" + digits.slice(7, Math.min(digits.length, 11));
-      }
+      // Add the rest of the digits with appropriate formatting
+      // This is a simplified approach that works for many international formats
+      result += digits;
     }
     
     setFormatted(result);
@@ -70,7 +59,8 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
   const isPhoneValid = () => {
     const digits = phone.replace(/\D/g, "");
-    return digits.length >= 10 && digits.length <= 15;
+    // Be more lenient with international numbers - just require minimum digits
+    return digits.length >= 7 && digits.length <= 15;
   };
 
   return (
@@ -116,7 +106,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
         </div>
         {touched && !isPhoneValid() && !isLoading && (
           <p className="text-sm text-destructive animate-fade-in">
-            Please enter a valid phone number
+            Please enter a valid international phone number
           </p>
         )}
       </div>
