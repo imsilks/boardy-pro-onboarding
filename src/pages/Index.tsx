@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { toast } from "sonner";
 import PhoneInput from "@/components/PhoneInput";
@@ -7,7 +6,8 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { fetchContactByPhone, getCronofyAuthUrl, isUrlReachable } from "@/lib/api";
 import { useFadeIn } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
-import { Calendar, RefreshCw, User, Phone as PhoneIcon } from "lucide-react";
+import { Calendar, RefreshCw, User, Phone as PhoneIcon, Edit, Check } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
@@ -16,11 +16,29 @@ const Index = () => {
   const [contact, setContact] = useState<{ id: string; fullName?: string } | null>(null);
   const [redirectError, setRedirectError] = useState(false);
   const [lookupPhone, setLookupPhone] = useState<string | null>(null);
+  const [subtitle, setSubtitle] = useState("Enter your phone number to connect your calendars");
+  const [isEditingSubtitle, setIsEditingSubtitle] = useState(false);
 
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInSubtitle = useFadeIn("down", 200);
   const fadeInCard = useFadeIn("up", 300);
+
+  // Function to handle editing the subtitle
+  const handleEditSubtitle = () => {
+    setIsEditingSubtitle(true);
+  };
+
+  // Function to save the subtitle
+  const handleSaveSubtitle = () => {
+    setIsEditingSubtitle(false);
+    toast.success("Subtitle updated");
+  };
+
+  // Handle subtitle change
+  const handleSubtitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSubtitle(e.target.value);
+  };
 
   const handlePhoneSubmit = async (phone: string) => {
     setLoading(true);
@@ -86,7 +104,6 @@ const Index = () => {
     }
   };
 
-  // Validate phone number as user types
   const handlePhoneValidation = (isValid: boolean) => {
     setPhoneValid(isValid);
   };
@@ -120,7 +137,40 @@ const Index = () => {
             />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-3">Welcome to Boardy Pro</h1>
-          <p className="text-lg text-gray-600" style={fadeInSubtitle}>Enter your phone number to connect your calendars</p>
+          
+          {/* Editable subtitle */}
+          <div className="flex items-center justify-center" style={fadeInSubtitle}>
+            {isEditingSubtitle ? (
+              <div className="flex items-center space-x-2 max-w-sm">
+                <Input 
+                  value={subtitle} 
+                  onChange={handleSubtitleChange} 
+                  className="text-center text-lg py-1"
+                  autoFocus
+                />
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={handleSaveSubtitle} 
+                  className="h-8 w-8 text-green-600"
+                >
+                  <Check size={16} />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center group relative">
+                <p className="text-lg text-gray-600">{subtitle}</p>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={handleEditSubtitle} 
+                  className="h-6 w-6 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Edit size={12} />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Phone input card */}
