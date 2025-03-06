@@ -1,4 +1,6 @@
 
+import { toast } from "sonner";
+
 // Types for our API
 export interface Contact {
   id: string;
