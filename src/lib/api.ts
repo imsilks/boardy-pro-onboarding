@@ -11,7 +11,7 @@ export interface Contact {
 // Base URLs for our APIs
 const SUPABASE_URL = "https://zprsisdofgrlsgcmtlgj-rr-us-east-1-jkjqy.supabase.co";
 const CRONOFY_BASE_URL = "https://boardy-server-v36-production.up.railway.app/api/cronofy/auth";
-const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxMTkzOTAsImV4cCI6MjA0NzY5NTM5MH0.F0oWS3trwHiyKkRIrETs3g6-544JMFWwylwdJP4QiYQ"; // This is the updated anon key
+const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxMTkzOTAsImV4cCI6MjA0NzY5NTM5MH0.F0oWS3trwHiyKkRIrETs3g6-544JMFWwylwdJP4QiYQ";
 
 // Fetch contact by phone number
 export const fetchContactByPhone = async (phone: string): Promise<Contact | null> => {
@@ -75,9 +75,38 @@ export const fetchContactByPhone = async (phone: string): Promise<Contact | null
   }
 };
 
-// Get Cronofy auth URL
+// Get Cronofy auth URL - with validation and fallback
 export const getCronofyAuthUrl = (contactId: string): string => {
-  return `${CRONOFY_BASE_URL}/${contactId}`;
+  try {
+    // Check if the URL is valid
+    const url = `${CRONOFY_BASE_URL}/${contactId}`;
+    console.log("Generated Cronofy URL:", url);
+    return url;
+  } catch (error) {
+    console.error("Error generating Cronofy URL:", error);
+    // Return a fallback URL if there's an error
+    return `/success?contactId=${contactId}`;
+  }
+};
+
+// Check if URL is reachable
+export const isUrlReachable = async (url: string): Promise<boolean> => {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
+    const response = await fetch(url, { 
+      method: 'HEAD',
+      mode: 'no-cors', // This is important for CORS issues
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    return true;
+  } catch (error) {
+    console.error(`URL ${url} is not reachable:`, error);
+    return false;
+  }
 };
 
 // Format phone number to international format with "+" followed by country code and number

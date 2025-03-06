@@ -4,13 +4,17 @@ import { toast } from "sonner";
 import PhoneInput from "@/components/PhoneInput";
 import GlassCard from "@/components/GlassCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { fetchContactByPhone, getCronofyAuthUrl } from "@/lib/api";
+import { fetchContactByPhone, getCronofyAuthUrl, isUrlReachable } from "@/lib/api";
 import { useFadeIn } from "@/lib/animations";
+import { Button } from "@/components/ui/button";
+import { Calendar, RefreshCw } from "lucide-react";
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
   const [phoneValid, setPhoneValid] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const [contact, setContact] = useState<{ id: string; fullName?: string } | null>(null);
+  const [redirectError, setRedirectError] = useState(false);
 
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
@@ -19,12 +23,13 @@ const Index = () => {
 
   const handlePhoneSubmit = async (phone: string) => {
     setLoading(true);
+    setRedirectError(false);
     try {
       console.log("Submitted phone number:", phone);
       
       // Fetch contact ID from Supabase
-      const contact = await fetchContactByPhone(phone);
-      if (!contact) {
+      const contactResult = await fetchContactByPhone(phone);
+      if (!contactResult) {
         console.error("No contact found for phone:", phone);
         toast.error("We couldn't find your account. Please check your phone number.");
         setLoading(false);
@@ -32,22 +37,34 @@ const Index = () => {
       }
 
       // Log the found contact info
-      console.log("Found contact:", contact);
+      console.log("Found contact:", contactResult);
+      setContact(contactResult);
 
       // Get Cronofy auth URL with the contact ID and redirect
-      const cronofyUrl = getCronofyAuthUrl(contact.id);
+      const cronofyUrl = getCronofyAuthUrl(contactResult.id);
       console.log("Redirecting to:", cronofyUrl);
       
       setRedirecting(true);
       toast.success("Account found! Redirecting to calendar connection...");
 
-      // Simulate a small delay for better UX
-      setTimeout(() => {
-        window.location.href = cronofyUrl;
-      }, 1500);
+      // Check if the URL is reachable before redirecting
+      const isReachable = await isUrlReachable(cronofyUrl);
+      
+      if (isReachable) {
+        // Simulate a small delay for better UX
+        setTimeout(() => {
+          window.location.href = cronofyUrl;
+        }, 1500);
+      } else {
+        // Handle the case when Cronofy is not reachable
+        console.error("Cronofy URL is not reachable:", cronofyUrl);
+        setRedirectError(true);
+        toast.error("Unable to connect to calendar service. Please try again later.");
+      }
     } catch (error) {
       console.error("Error processing request:", error);
       toast.error("Something went wrong. Please try again.");
+      setRedirectError(true);
       setLoading(false);
     }
   };
@@ -55,6 +72,21 @@ const Index = () => {
   // Validate phone number as user types
   const handlePhoneValidation = (isValid: boolean) => {
     setPhoneValid(isValid);
+  };
+
+  const handleRetryRedirect = () => {
+    if (contact) {
+      setRedirectError(false);
+      setRedirecting(true);
+      
+      const cronofyUrl = getCronofyAuthUrl(contact.id);
+      toast.success("Retrying connection...");
+      
+      // Redirect after a short delay
+      setTimeout(() => {
+        window.location.href = cronofyUrl;
+      }, 1000);
+    }
   };
 
   return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
@@ -77,17 +109,71 @@ const Index = () => {
         {/* Phone input card */}
         <div className="w-full" style={fadeInCard}>
           <GlassCard className="p-6 sm:p-8 w-full" intensity="heavy" blur="lg">
-            {redirecting ? <div className="py-6 flex flex-col items-center justify-center space-y-4 animate-fade-in">
-                <LoadingSpinner size="lg" className="text-primary" />
-                <p className="text-gray-700 text-center font-medium">
-                  Connecting to your calendar...
-                </p>
-              </div> : <PhoneInput onSubmit={handlePhoneSubmit} isLoading={loading} isValid={phoneValid} />}
+            {redirecting ? (
+              redirectError ? (
+                <div className="py-6 flex flex-col items-center justify-center space-y-4 animate-fade-in">
+                  <div className="text-amber-500 mb-2">
+                    <img 
+                      src="/lovable-uploads/03d42aff-d6a9-4576-8507-8cb1277db403.png" 
+                      alt="Connection Error" 
+                      className="h-24 w-auto mx-auto mb-2 opacity-70"
+                    />
+                  </div>
+                  <p className="text-gray-700 text-center font-medium mb-2">
+                    Unable to connect to the calendar service
+                  </p>
+                  <p className="text-gray-500 text-sm text-center mb-4">
+                    The calendar connection service is currently unavailable. Please try again later.
+                  </p>
+                  <div className="flex flex-col space-y-2 w-full">
+                    <Button 
+                      onClick={handleRetryRedirect}
+                      className="w-full"
+                    >
+                      <RefreshCw size={16} />
+                      Retry Connection
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setRedirecting(false);
+                        setRedirectError(false);
+                        setLoading(false);
+                      }}
+                      className="w-full"
+                    >
+                      Enter Different Phone Number
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-6 flex flex-col items-center justify-center space-y-4 animate-fade-in">
+                  <LoadingSpinner size="lg" className="text-primary" />
+                  <p className="text-gray-700 text-center font-medium">
+                    Connecting to your calendar...
+                  </p>
+                </div>
+              )
+            ) : (
+              <PhoneInput 
+                onSubmit={handlePhoneSubmit} 
+                isLoading={loading} 
+                isValid={phoneValid} 
+              />
+            )}
           </GlassCard>
           
-          <p className="mt-6 text-center text-sm text-gray-500 animate-fade-in">
-            We'll verify your phone number to find your account
-          </p>
+          {!redirecting && (
+            <p className="mt-6 text-center text-sm text-gray-500 animate-fade-in">
+              We'll verify your phone number to find your account
+            </p>
+          )}
+          
+          {redirectError && (
+            <p className="mt-6 text-center text-sm text-amber-500 animate-fade-in">
+              Note: Your account was found successfully, but there was an issue connecting to the calendar service.
+            </p>
+          )}
         </div>
       </div>
     </div>;
