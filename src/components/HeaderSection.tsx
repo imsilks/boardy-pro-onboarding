@@ -28,33 +28,27 @@ const HeaderSection = ({
 }: HeaderSectionProps) => {
   const [isEditingSubtitle, setIsEditingSubtitle] = useState(false);
 
-  // Function to handle editing the subtitle
   const handleEditSubtitle = () => {
     setIsEditingSubtitle(true);
   };
 
-  // Function to save the subtitle
   const handleSaveSubtitle = () => {
     setIsEditingSubtitle(false);
     toast.success("Subtitle updated");
   };
 
-  // Handle subtitle change
   const handleSubtitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSubtitleChange(e.target.value);
   };
 
-  // Toggle weight
   const toggleWeight = () => {
     onStyleChange('weight', subtitleStyle.weight === "font-normal" ? "font-bold" : "font-normal");
   };
   
-  // Toggle italic
   const toggleItalic = () => {
     onStyleChange('italic', !subtitleStyle.italic);
   };
 
-  // Color presets for the subtitle
   const colorOptions = [
     { name: "Gray", class: "text-gray-600" },
     { name: "Blue", class: "text-blue-600" },
@@ -63,7 +57,6 @@ const HeaderSection = ({
     { name: "Red", class: "text-red-600" }
   ];
   
-  // Size options for the subtitle
   const sizeOptions = [
     { name: "Small", class: "text-base" },
     { name: "Medium", class: "text-lg" },
@@ -81,7 +74,6 @@ const HeaderSection = ({
       </div>
       <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-3">Welcome to Boardy Pro</h1>
       
-      {/* Editable subtitle with styling */}
       <div className="flex flex-col items-center justify-center" style={fadeInSubtitle}>
         {isEditingSubtitle ? (
           <div className="flex flex-col space-y-3 w-full max-w-sm">
@@ -102,9 +94,7 @@ const HeaderSection = ({
               </Button>
             </div>
             
-            {/* Styling controls */}
             <div className="flex flex-col space-y-2 bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-gray-200 shadow-sm animate-fade-in">
-              {/* Text color */}
               <div className="flex items-center space-x-2">
                 <Palette size={14} className="text-gray-500" />
                 <span className="text-xs text-gray-500">Color:</span>
@@ -121,7 +111,6 @@ const HeaderSection = ({
                 </div>
               </div>
               
-              {/* Text size */}
               <div className="flex items-center space-x-2">
                 <Type size={14} className="text-gray-500" />
                 <span className="text-xs text-gray-500">Size:</span>
@@ -140,7 +129,6 @@ const HeaderSection = ({
                 </div>
               </div>
               
-              {/* Text style */}
               <div className="flex items-center space-x-2">
                 <span className="text-xs text-gray-500">Style:</span>
                 <div className="flex space-x-1">
