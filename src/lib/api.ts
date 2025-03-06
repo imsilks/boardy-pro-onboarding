@@ -5,6 +5,7 @@ import { toast } from "sonner";
 export interface Contact {
   id: string;
   phone: string;
+  fullName?: string;  // Add fullName as an optional property
   // Add other fields as needed
 }
 
