@@ -64,7 +64,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     setConnectionStatus("untested");
     
     try {
-      const response = await fetch("https://zprsisdofgrlsgcmtlgj.supabase.co/rest/v1/Contact?limit=1", {
+      const response = await fetch("https://zprsisdofgrlsgcmtlgj-rr-us-east-1-jkjqy.supabase.co/rest/v1/Contact?limit=1", {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
