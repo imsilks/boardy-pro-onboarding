@@ -21,8 +21,8 @@ export const fetchContactByPhone = async (phone: string): Promise<Contact | null
     
     console.log("Looking up contact with formatted phone:", formattedPhone);
     
-    // Try with formatted phone number
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/contact?phone=eq.${encodeURIComponent(formattedPhone)}`, {
+    // Try with formatted phone number - using "Contact" with capital C to match the Prisma schema
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/Contact?phone=eq.${encodeURIComponent(formattedPhone)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -47,9 +47,9 @@ export const fetchContactByPhone = async (phone: string): Promise<Contact | null
     const digitsOnly = phone.replace(/\D/g, '');
     console.log("Trying fallback with digits only:", digitsOnly);
     
-    // Try a second lookup with just digits or different format
+    // Try a second lookup with just digits or different format - using correct table case
     if (digitsOnly.length >= 10) {
-      const fallbackResponse = await fetch(`${SUPABASE_URL}/rest/v1/contact?phone=ilike.*${encodeURIComponent(digitsOnly.slice(-10))}*`, {
+      const fallbackResponse = await fetch(`${SUPABASE_URL}/rest/v1/Contact?phone=ilike.*${encodeURIComponent(digitsOnly.slice(-10))}*`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
