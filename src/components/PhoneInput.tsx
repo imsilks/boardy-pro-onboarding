@@ -3,9 +3,10 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, ArrowRight, Check } from "lucide-react";
+import { Phone, ArrowRight, Check, AlertCircle, PlugZap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFadeIn } from "@/lib/animations";
+import { toast } from "sonner";
 
 interface PhoneInputProps {
   onSubmit: (phone: string) => void;
@@ -22,6 +23,8 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const [focused, setFocused] = useState(false);
   const [touched, setTouched] = useState(false);
   const [formatted, setFormatted] = useState("");
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<"untested" | "success" | "error">("untested");
   
   const fadeInStyle = useFadeIn("up", 100);
 
@@ -61,6 +64,39 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     const digits = phone.replace(/\D/g, "");
     // Be more lenient with international numbers - just require minimum digits
     return digits.length >= 7 && digits.length <= 15;
+  };
+
+  const testSupabaseConnection = async () => {
+    setTestingConnection(true);
+    setConnectionStatus("untested");
+    
+    try {
+      // Use the existing fetch API and URL from api.ts
+      const response = await fetch("https://zprsisdofgrlsgcmtlgj-rr-us-east-1-jkjqy.supabase.co/rest/v1/Contact?limit=1", {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqLXJyLXVzLWVhc3QtMS1qa2pxeSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE5MTEzNDQ2LCJleHAiOjIwMzQ2ODk0NDZ9.Xa2Zd-qxMX_T34u_AuYWgbB61R1-qx8TkAVb2aJDY0E',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqLXJyLXVzLWVhc3QtMS1qa2pxeSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE5MTEzNDQ2LCJleHAiOjIwMzQ2ODk0NDZ9.Xa2Zd-qxMX_T34u_AuYWgbB61R1-qx8TkAVb2aJDY0E`,
+        },
+      });
+      
+      console.log('Supabase connection test response:', response.status);
+      
+      if (response.ok) {
+        setConnectionStatus("success");
+        toast.success("Supabase connection successful!");
+      } else {
+        setConnectionStatus("error");
+        toast.error(`Supabase connection failed with status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error testing Supabase connection:', error);
+      setConnectionStatus("error");
+      toast.error("Failed to connect to Supabase. Check console for details.");
+    } finally {
+      setTestingConnection(false);
+    }
   };
 
   return (
@@ -131,6 +167,32 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           </span>
         )}
       </Button>
+      
+      {/* Supabase connection test button */}
+      <div className="pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full text-xs h-8 border-dashed"
+          onClick={testSupabaseConnection}
+          disabled={testingConnection}
+        >
+          {testingConnection ? (
+            <span className="flex items-center gap-2">
+              <span className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              Testing Connection...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <PlugZap size={14} />
+              Test Supabase Connection
+              {connectionStatus === "success" && <Check size={14} className="text-green-500" />}
+              {connectionStatus === "error" && <AlertCircle size={14} className="text-red-500" />}
+            </span>
+          )}
+        </Button>
+      </div>
     </form>
   );
 };
