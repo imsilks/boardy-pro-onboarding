@@ -1,12 +1,10 @@
-
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import PhoneInput from "@/components/PhoneInput";
 import GlassCard from "@/components/GlassCard";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { fetchContactByPhone, getCronofyAuthUrl } from "@/lib/api";
-import { useFadeIn, useAnimationSequence } from "@/lib/animations";
+import { useFadeIn } from "@/lib/animations";
 
 const Index = () => {
   const [loading, setLoading] = useState(false);
@@ -29,7 +27,7 @@ const Index = () => {
         return;
       }
 
-      // Get Cronofy auth URL and redirect
+      // Get Cronofy auth URL with the contact ID and redirect
       const cronofyUrl = getCronofyAuthUrl(contact.id);
       setRedirecting(true);
       toast.success("Account found! Redirecting to calendar connection...");
