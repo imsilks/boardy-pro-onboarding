@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { Edit, Check, Type, Palette, Bold, Italic } from "lucide-react";
@@ -14,7 +13,7 @@ interface HeaderSectionProps {
   };
   subtitle: string;
   onSubtitleChange: (text: string) => void;
-  onStyleChange: (property: string, value: string) => void;
+  onStyleChange: (property: string, value: string | boolean) => void;
   fadeInTitle: React.CSSProperties;
   fadeInSubtitle: React.CSSProperties;
 }

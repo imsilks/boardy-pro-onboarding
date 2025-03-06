@@ -16,11 +16,11 @@ const Index = () => {
   const [lookupPhone, setLookupPhone] = useState<string | null>(null);
   
   // State for subtitle text and styling
-  const [subtitle, setSubtitle] = useState("Enter your phone number to connect your calendars");
+  const [subtitle, setSubtitle] = useState("Let's get started! Enter your phone number below to connect your calendars");
   const [subtitleStyle, setSubtitleStyle] = useState({
-    color: "text-gray-600",
+    color: "text-blue-600",
     size: "text-lg",
-    weight: "font-normal",
+    weight: "font-bold",
     italic: false
   });
   
