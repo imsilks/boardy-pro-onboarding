@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,17 +27,13 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   
   const fadeInStyle = useFadeIn("up", 100);
 
-  // Format phone number as user types
   useEffect(() => {
     const digits = phone.replace(/\D/g, "");
     let result = "";
     
-    // Always start with "+" for international format
     if (digits.length > 0) {
       result = "+";
       
-      // Add the rest of the digits with appropriate formatting
-      // This is a simplified approach that works for many international formats
       result += digits;
     }
     
@@ -47,7 +42,6 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
-    // Only allow digits, plus, parentheses, dashes and spaces
     const filtered = input.replace(/[^\d+\s()-]/g, "");
     setPhone(filtered);
     setTouched(true);
@@ -62,7 +56,6 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
   const isPhoneValid = () => {
     const digits = phone.replace(/\D/g, "");
-    // Be more lenient with international numbers - just require minimum digits
     return digits.length >= 7 && digits.length <= 15;
   };
 
@@ -71,13 +64,12 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     setConnectionStatus("untested");
     
     try {
-      // Use the existing fetch API and URL from api.ts
-      const response = await fetch("https://zprsisdofgrlsgcmtlgj-rr-us-east-1-jkjqy.supabase.co/rest/v1/Contact?limit=1", {
+      const response = await fetch("https://zprsisdofgrlsgcmtlgj.supabase.co/rest/v1/Contact?limit=1", {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqLXJyLXVzLWVhc3QtMS1qa2pxeSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE5MTEzNDQ2LCJleHAiOjIwMzQ2ODk0NDZ9.Xa2Zd-qxMX_T34u_AuYWgbB61R1-qx8TkAVb2aJDY0E',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqLXJyLXVzLWVhc3QtMS1qa2pxeSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE5MTEzNDQ2LCJleHAiOjIwMzQ2ODk0NDZ9.Xa2Zd-qxMX_T34u_AuYWgbB61R1-qx8TkAVb2aJDY0E`,
+          'apikey': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxMTkzOTAsImV4cCI6MjA0NzY5NTM5MH0.F0oWS3trwHiyKkRIrETs3g6-544JMFWwylwdJP4QiYQ",
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxMTkzOTAsImV4cCI6MjA0NzY5NTM5MH0.F0oWS3trwHiyKkRIrETs3g6-544JMFWwylwdJP4QiYQ`,
         },
       });
       
@@ -168,7 +160,6 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
         )}
       </Button>
       
-      {/* Supabase connection test button */}
       <div className="pt-2">
         <Button
           type="button"
