@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { toast } from "sonner";
 import PhoneInput from "@/components/PhoneInput";
@@ -19,16 +20,24 @@ const Index = () => {
   const handlePhoneSubmit = async (phone: string) => {
     setLoading(true);
     try {
+      console.log("Submitted phone number:", phone);
+      
       // Fetch contact ID from Supabase
       const contact = await fetchContactByPhone(phone);
       if (!contact) {
+        console.error("No contact found for phone:", phone);
         toast.error("We couldn't find your account. Please check your phone number.");
         setLoading(false);
         return;
       }
 
+      // Log the found contact info
+      console.log("Found contact:", contact);
+
       // Get Cronofy auth URL with the contact ID and redirect
       const cronofyUrl = getCronofyAuthUrl(contact.id);
+      console.log("Redirecting to:", cronofyUrl);
+      
       setRedirecting(true);
       toast.success("Account found! Redirecting to calendar connection...");
 
