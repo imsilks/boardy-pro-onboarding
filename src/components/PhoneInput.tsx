@@ -3,10 +3,9 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, ArrowRight, Check, AlertCircle, PlugZap, Info } from "lucide-react";
+import { Phone, ArrowRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFadeIn } from "@/lib/animations";
-import { toast } from "sonner";
 import { formatPhoneNumber } from "@/lib/api";
 
 interface PhoneInputProps {
@@ -24,8 +23,6 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const [focused, setFocused] = useState(false);
   const [touched, setTouched] = useState(false);
   const [formatted, setFormatted] = useState("");
-  const [testingConnection, setTestingConnection] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<"untested" | "success" | "error">("untested");
   
   const fadeInStyle = useFadeIn("up", 100);
 
@@ -52,9 +49,8 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isPhoneValid()) {
-      // Show the formatted phone that will be used for the lookup
+      // Use the formatted phone number for lookup
       const formattedForLookup = formatPhoneNumber(phone.replace(/\D/g, ""));
-      toast.info(`Submitting phone: ${formattedForLookup}`);
       console.log("Submitting formatted phone:", formattedForLookup);
       
       onSubmit(phone.replace(/\D/g, ""));
@@ -64,49 +60,6 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const isPhoneValid = () => {
     const digits = phone.replace(/\D/g, "");
     return digits.length >= 7 && digits.length <= 15;
-  };
-
-  const testSupabaseConnection = async () => {
-    setTestingConnection(true);
-    setConnectionStatus("untested");
-    
-    try {
-      const response = await fetch("https://zprsisdofgrlsgcmtlgj-rr-us-east-1-jkjqy.supabase.co/rest/v1/Contact?limit=1", {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxMTkzOTAsImV4cCI6MjA0NzY5NTM5MH0.F0oWS3trwHiyKkRIrETs3g6-544JMFWwylwdJP4QiYQ",
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxMTkzOTAsImV4cCI6MjA0NzY5NTM5MH0.F0oWS3trwHiyKkRIrETs3g6-544JMFWwylwdJP4QiYQ`,
-        },
-      });
-      
-      console.log('Supabase connection test response:', response.status);
-      
-      if (response.ok) {
-        setConnectionStatus("success");
-        toast.success("Supabase connection successful!");
-      } else {
-        setConnectionStatus("error");
-        toast.error(`Supabase connection failed with status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Error testing Supabase connection:', error);
-      setConnectionStatus("error");
-      toast.error("Failed to connect to Supabase. Check console for details.");
-    } finally {
-      setTestingConnection(false);
-    }
-  };
-
-  const showPhoneFormat = () => {
-    if (isPhoneValid()) {
-      const formattedForLookup = formatPhoneNumber(phone.replace(/\D/g, ""));
-      toast.info(`Your number will be formatted as: ${formattedForLookup}`, {
-        description: "This is the format we'll use to look up your account"
-      });
-    } else {
-      toast.info("Enter a valid phone number first");
-    }
   };
 
   return (
@@ -155,18 +108,6 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
             Please enter a valid international phone number
           </p>
         )}
-        {isPhoneValid() && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="text-xs px-2 h-6"
-            onClick={showPhoneFormat}
-          >
-            <Info size={12} className="mr-1" />
-            Show format for lookup
-          </Button>
-        )}
       </div>
 
       <Button
@@ -189,31 +130,6 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           </span>
         )}
       </Button>
-      
-      <div className="pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="w-full text-xs h-8 border-dashed"
-          onClick={testSupabaseConnection}
-          disabled={testingConnection}
-        >
-          {testingConnection ? (
-            <span className="flex items-center gap-2">
-              <span className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              Testing Connection...
-            </span>
-          ) : (
-            <span className="flex items-center gap-2">
-              <PlugZap size={14} />
-              Test Supabase Connection
-              {connectionStatus === "success" && <Check size={14} className="text-green-500" />}
-              {connectionStatus === "error" && <AlertCircle size={14} className="text-red-500" />}
-            </span>
-          )}
-        </Button>
-      </div>
     </form>
   );
 };
