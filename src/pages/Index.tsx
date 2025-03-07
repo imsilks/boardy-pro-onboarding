@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { fetchContactByPhone, getCronofyAuthUrl, isUrlReachable } from "@/lib/api";
@@ -15,8 +14,7 @@ const Index = () => {
   const [redirectError, setRedirectError] = useState(false);
   const [lookupPhone, setLookupPhone] = useState<string | null>(null);
   
-  // State for subtitle text and styling
-  const [subtitle, setSubtitle] = useState("Enter your phone number to get started");
+  // State for subtitle styling
   const [subtitleStyle, setSubtitleStyle] = useState({
     color: "text-gray-600",
     size: "text-lg",
@@ -28,11 +26,6 @@ const Index = () => {
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInSubtitle = useFadeIn("down", 200);
   const fadeInCard = useFadeIn("up", 300);
-
-  // Handle subtitle text change
-  const handleSubtitleChange = (text: string) => {
-    setSubtitle(text);
-  };
   
   // Handle subtitle style changes
   const updateSubtitleStyle = (property: string, value: string | boolean) => {
@@ -138,9 +131,7 @@ const Index = () => {
       <div className="relative w-full max-w-md flex flex-col items-center z-10">
         {/* Header with title and editable subtitle */}
         <HeaderSection 
-          subtitle={subtitle}
           subtitleStyle={subtitleStyle}
-          onSubtitleChange={handleSubtitleChange}
           onStyleChange={updateSubtitleStyle}
           fadeInTitle={fadeInTitle}
           fadeInSubtitle={fadeInSubtitle}
