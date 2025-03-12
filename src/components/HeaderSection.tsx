@@ -6,22 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface HeaderSectionProps {
-  subtitleStyle: {
+  fadeInTitle: React.CSSProperties;
+  fadeInSubtitle: React.CSSProperties;
+  subtitleStyle?: {
     color: string;
     size: string;
     weight: string;
     italic: boolean;
   };
-  onStyleChange: (property: string, value: string | boolean) => void;
-  fadeInTitle: React.CSSProperties;
-  fadeInSubtitle: React.CSSProperties;
+  onStyleChange?: (property: string, value: string | boolean) => void;
 }
 
 const HeaderSection = ({
-  subtitleStyle,
-  onStyleChange,
   fadeInTitle,
-  fadeInSubtitle
+  fadeInSubtitle,
+  subtitleStyle = {
+    color: "text-gray-600",
+    size: "text-lg",
+    weight: "font-normal",
+    italic: false
+  },
+  onStyleChange = () => {}
 }: HeaderSectionProps) => {
   const [isEditingSubtitle, setIsEditingSubtitle] = useState(false);
   const [subtitle, setSubtitle] = useState("Enter your phone number to get started");
