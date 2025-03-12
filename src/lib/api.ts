@@ -91,7 +91,7 @@ export const fetchContactByPhone = async (phone: string): Promise<Contact | null
 // Get Cronofy auth URL - with validation and fallback
 export const getCronofyAuthUrl = (contactId: string): string => {
   try {
-    // Use the correct URL format with contactId at the end
+    // Ensure contactId is appended to the end of the URL
     const url = `${CRONOFY_BASE_URL}/${contactId}`;
     console.log("Generated Cronofy URL:", url);
     return url;

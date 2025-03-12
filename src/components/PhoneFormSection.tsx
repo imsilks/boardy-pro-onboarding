@@ -3,6 +3,7 @@ import React from "react";
 import GlassCard from "@/components/GlassCard";
 import PhoneInput from "@/components/PhoneInput";
 import RedirectStatus from "@/components/RedirectStatus";
+import LinkedInUpload from "@/components/LinkedInUpload";
 
 interface PhoneFormSectionProps {
   loading: boolean;
@@ -16,6 +17,9 @@ interface PhoneFormSectionProps {
   handlePhoneValidation: (isValid: boolean) => void;
   handleRetryRedirect: () => void;
   resetRedirect: () => void;
+  showLinkedInUpload?: boolean;
+  onLinkedInUploadComplete?: () => void;
+  onBackToPhone?: () => void;
 }
 
 const PhoneFormSection: React.FC<PhoneFormSectionProps> = ({
@@ -29,7 +33,10 @@ const PhoneFormSection: React.FC<PhoneFormSectionProps> = ({
   handlePhoneSubmit,
   handlePhoneValidation,
   handleRetryRedirect,
-  resetRedirect
+  resetRedirect,
+  showLinkedInUpload = false,
+  onLinkedInUploadComplete,
+  onBackToPhone
 }) => {
   return (
     <div className="w-full" style={fadeInCard}>
@@ -43,6 +50,12 @@ const PhoneFormSection: React.FC<PhoneFormSectionProps> = ({
             onRetry={handleRetryRedirect}
             onReset={resetRedirect}
           />
+        ) : showLinkedInUpload && contact ? (
+          <LinkedInUpload 
+            contactId={contact.id} 
+            onComplete={onLinkedInUploadComplete!}
+            onBack={onBackToPhone!}
+          />
         ) : (
           <PhoneInput 
             onSubmit={handlePhoneSubmit} 
@@ -52,7 +65,7 @@ const PhoneFormSection: React.FC<PhoneFormSectionProps> = ({
         )}
       </GlassCard>
       
-      {!redirecting && (
+      {!redirecting && !showLinkedInUpload && (
         <p className="mt-6 text-center text-sm text-gray-500 animate-fade-in">
           We'll verify your phone number to find your account
         </p>

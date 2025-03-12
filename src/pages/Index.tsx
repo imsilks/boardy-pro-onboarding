@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { fetchContactByPhone, getCronofyAuthUrl, isUrlReachable } from "@/lib/api";
@@ -13,27 +14,12 @@ const Index = () => {
   const [contact, setContact] = useState<{ id: string; fullName?: string } | null>(null);
   const [redirectError, setRedirectError] = useState(false);
   const [lookupPhone, setLookupPhone] = useState<string | null>(null);
-  
-  // State for subtitle styling
-  const [subtitleStyle, setSubtitleStyle] = useState({
-    color: "text-gray-600",
-    size: "text-lg",
-    weight: "font-normal",
-    italic: false
-  });
+  const [showLinkedInUpload, setShowLinkedInUpload] = useState(false);
   
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInSubtitle = useFadeIn("down", 200);
   const fadeInCard = useFadeIn("up", 300);
-  
-  // Handle subtitle style changes
-  const updateSubtitleStyle = (property: string, value: string | boolean) => {
-    setSubtitleStyle(prev => ({
-      ...prev,
-      [property]: value
-    }));
-  };
 
   const handlePhoneSubmit = async (phone: string) => {
     setLoading(true);
@@ -71,26 +57,9 @@ const Index = () => {
         }
       );
 
-      // Get Cronofy auth URL with the contact ID and redirect
-      const cronofyUrl = getCronofyAuthUrl(contactResult.id);
-      console.log("Redirecting to:", cronofyUrl);
-      
-      setRedirecting(true);
-
-      // Check if the URL is reachable before redirecting
-      const isReachable = await isUrlReachable(cronofyUrl);
-      
-      if (isReachable) {
-        // Simulate a small delay for better UX
-        setTimeout(() => {
-          window.location.href = cronofyUrl;
-        }, 1500);
-      } else {
-        // Handle the case when Cronofy is not reachable
-        console.error("Cronofy URL is not reachable:", cronofyUrl);
-        setRedirectError(true);
-        toast.error("Unable to connect to calendar service. Please try again later.");
-      }
+      // Show LinkedIn upload instead of redirecting immediately
+      setLoading(false);
+      setShowLinkedInUpload(true);
     } catch (error) {
       console.error("Error processing request:", error);
       toast.error("Something went wrong. Please try again.");
@@ -101,6 +70,41 @@ const Index = () => {
 
   const handlePhoneValidation = (isValid: boolean) => {
     setPhoneValid(isValid);
+  };
+
+  const handleLinkedInUploadComplete = async () => {
+    // After LinkedIn upload, proceed with Cronofy auth
+    if (contact) {
+      setRedirecting(true);
+      
+      // Get Cronofy auth URL with the contact ID and redirect
+      const cronofyUrl = getCronofyAuthUrl(contact.id);
+      console.log("Redirecting to:", cronofyUrl);
+      
+      try {
+        // Check if the URL is reachable before redirecting
+        const isReachable = await isUrlReachable(cronofyUrl);
+        
+        if (isReachable) {
+          // Simulate a small delay for better UX
+          setTimeout(() => {
+            window.location.href = cronofyUrl;
+          }, 1500);
+        } else {
+          // Handle the case when Cronofy is not reachable
+          console.error("Cronofy URL is not reachable:", cronofyUrl);
+          setRedirectError(true);
+          toast.error("Unable to connect to calendar service. Please try again later.");
+        }
+      } catch (error) {
+        console.error("Error checking URL:", error);
+        setRedirectError(true);
+      }
+    }
+  };
+
+  const handleBackToPhone = () => {
+    setShowLinkedInUpload(false);
   };
 
   const handleRetryRedirect = () => {
@@ -129,15 +133,13 @@ const Index = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
       <div className="relative w-full max-w-md flex flex-col items-center z-10">
-        {/* Header with title and editable subtitle */}
+        {/* Header with title and subtitle */}
         <HeaderSection 
-          subtitleStyle={subtitleStyle}
-          onStyleChange={updateSubtitleStyle}
           fadeInTitle={fadeInTitle}
           fadeInSubtitle={fadeInSubtitle}
         />
 
-        {/* Phone input and redirect status */}
+        {/* Phone input, LinkedIn upload and redirect status */}
         <PhoneFormSection 
           loading={loading}
           phoneValid={phoneValid}
@@ -150,6 +152,9 @@ const Index = () => {
           handlePhoneValidation={handlePhoneValidation}
           handleRetryRedirect={handleRetryRedirect}
           resetRedirect={resetRedirect}
+          showLinkedInUpload={showLinkedInUpload}
+          onLinkedInUploadComplete={handleLinkedInUploadComplete}
+          onBackToPhone={handleBackToPhone}
         />
       </div>
     </div>

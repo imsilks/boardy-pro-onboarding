@@ -143,6 +143,72 @@ export type Database = {
           },
         ]
       }
+      ColdOutbound: {
+        Row: {
+          contactId: string
+          contactStatus: Database["public"]["Enums"]["OutboundStatus"]
+          createdAt: string
+          id: string
+          prospectId: string
+          prospectStatus: Database["public"]["Enums"]["OutboundStatus"]
+          updatedAt: string
+        }
+        Insert: {
+          contactId: string
+          contactStatus: Database["public"]["Enums"]["OutboundStatus"]
+          createdAt?: string
+          id: string
+          prospectId: string
+          prospectStatus: Database["public"]["Enums"]["OutboundStatus"]
+          updatedAt: string
+        }
+        Update: {
+          contactId?: string
+          contactStatus?: Database["public"]["Enums"]["OutboundStatus"]
+          createdAt?: string
+          id?: string
+          prospectId?: string
+          prospectStatus?: Database["public"]["Enums"]["OutboundStatus"]
+          updatedAt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ColdOutbound_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "Contact"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ColdOutbound_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "ContactScores"
+            referencedColumns: ["contactId"]
+          },
+          {
+            foreignKeyName: "ColdOutbound_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "MatchingModelFeatures"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ColdOutbound_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "RandomContact"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ColdOutbound_prospectId_fkey"
+            columns: ["prospectId"]
+            isOneToOne: false
+            referencedRelation: "Prospect"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Community: {
         Row: {
           createdAt: string
@@ -226,6 +292,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      CommunityVersions: {
+        Row: {
+          communityId: string | null
+          created_at: string
+          criteria: Json | null
+          dateFilter: string | null
+          id: string
+          isActive: boolean | null
+          promptId: string | null
+          promptVersion: string | null
+          sheetsId: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          communityId?: string | null
+          created_at?: string
+          criteria?: Json | null
+          dateFilter?: string | null
+          id: string
+          isActive?: boolean | null
+          promptId?: string | null
+          promptVersion?: string | null
+          sheetsId?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          communityId?: string | null
+          created_at?: string
+          criteria?: Json | null
+          dateFilter?: string | null
+          id?: string
+          isActive?: boolean | null
+          promptId?: string | null
+          promptVersion?: string | null
+          sheetsId?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       Contact: {
         Row: {
@@ -1025,6 +1130,161 @@ export type Database = {
           },
         ]
       }
+      Meeting: {
+        Row: {
+          createdAt: string
+          endedAt: string | null
+          id: string
+          isProcessed: boolean
+          meetingId: string
+          recordingUrl: string | null
+          startedAt: string | null
+          transcript: Json | null
+          updatedAt: string
+        }
+        Insert: {
+          createdAt?: string
+          endedAt?: string | null
+          id: string
+          isProcessed?: boolean
+          meetingId: string
+          recordingUrl?: string | null
+          startedAt?: string | null
+          transcript?: Json | null
+          updatedAt: string
+        }
+        Update: {
+          createdAt?: string
+          endedAt?: string | null
+          id?: string
+          isProcessed?: boolean
+          meetingId?: string
+          recordingUrl?: string | null
+          startedAt?: string | null
+          transcript?: Json | null
+          updatedAt?: string
+        }
+        Relationships: []
+      }
+      MeetingParticipant: {
+        Row: {
+          contactId: string
+          createdAt: string
+          email: string
+          id: string
+          meetingId: string
+          updatedAt: string
+        }
+        Insert: {
+          contactId: string
+          createdAt?: string
+          email: string
+          id: string
+          meetingId: string
+          updatedAt: string
+        }
+        Update: {
+          contactId?: string
+          createdAt?: string
+          email?: string
+          id?: string
+          meetingId?: string
+          updatedAt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "MeetingParticipant_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "Contact"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "MeetingParticipant_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "ContactScores"
+            referencedColumns: ["contactId"]
+          },
+          {
+            foreignKeyName: "MeetingParticipant_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "MatchingModelFeatures"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "MeetingParticipant_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "RandomContact"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "MeetingParticipant_meetingId_fkey"
+            columns: ["meetingId"]
+            isOneToOne: false
+            referencedRelation: "Meeting"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ProContactSettings: {
+        Row: {
+          calendarBookingLink: string
+          coldOutboundFrequencyHours: number
+          contactId: string
+          createdAt: string
+          id: string
+          updatedAt: string
+        }
+        Insert: {
+          calendarBookingLink: string
+          coldOutboundFrequencyHours?: number
+          contactId: string
+          createdAt?: string
+          id: string
+          updatedAt: string
+        }
+        Update: {
+          calendarBookingLink?: string
+          coldOutboundFrequencyHours?: number
+          contactId?: string
+          createdAt?: string
+          id?: string
+          updatedAt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ProContactSettings_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "Contact"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ProContactSettings_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "ContactScores"
+            referencedColumns: ["contactId"]
+          },
+          {
+            foreignKeyName: "ProContactSettings_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "MatchingModelFeatures"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ProContactSettings_contactId_fkey"
+            columns: ["contactId"]
+            isOneToOne: false
+            referencedRelation: "RandomContact"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Prospect: {
         Row: {
           contactId: string
@@ -1033,6 +1293,7 @@ export type Database = {
           email: string | null
           id: string
           justification: string | null
+          numResults: number
           profileSummary: string | null
           publicLinkedinId: string | null
           updatedAt: string
@@ -1044,6 +1305,7 @@ export type Database = {
           email?: string | null
           id: string
           justification?: string | null
+          numResults?: number
           profileSummary?: string | null
           publicLinkedinId?: string | null
           updatedAt: string
@@ -1055,6 +1317,7 @@ export type Database = {
           email?: string | null
           id?: string
           justification?: string | null
+          numResults?: number
           profileSummary?: string | null
           publicLinkedinId?: string | null
           updatedAt?: string
@@ -1273,6 +1536,8 @@ export type Database = {
           id: string
           introMatchId: string | null
           matchMatchId: string | null
+          outboundContactId: string | null
+          outboundProspectId: string | null
           threadType: Database["public"]["Enums"]["ThreadType"] | null
           updatedAt: string
           userMatchId: string | null
@@ -1283,6 +1548,8 @@ export type Database = {
           id: string
           introMatchId?: string | null
           matchMatchId?: string | null
+          outboundContactId?: string | null
+          outboundProspectId?: string | null
           threadType?: Database["public"]["Enums"]["ThreadType"] | null
           updatedAt: string
           userMatchId?: string | null
@@ -1293,6 +1560,8 @@ export type Database = {
           id?: string
           introMatchId?: string | null
           matchMatchId?: string | null
+          outboundContactId?: string | null
+          outboundProspectId?: string | null
           threadType?: Database["public"]["Enums"]["ThreadType"] | null
           updatedAt?: string
           userMatchId?: string | null
@@ -1338,6 +1607,20 @@ export type Database = {
             columns: ["matchMatchId"]
             isOneToOne: false
             referencedRelation: "Match"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Thread_outboundContactId_fkey"
+            columns: ["outboundContactId"]
+            isOneToOne: false
+            referencedRelation: "ColdOutbound"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Thread_outboundProspectId_fkey"
+            columns: ["outboundProspectId"]
+            isOneToOne: false
+            referencedRelation: "ColdOutbound"
             referencedColumns: ["id"]
           },
           {
@@ -1653,7 +1936,12 @@ export type Database = {
       }
     }
     Enums: {
-      CreatedVia: "LINKEDIN_DM" | "COLD_EMAIL" | "COLD_CALL" | "EMAIL_REFERRAL"
+      CreatedVia:
+        | "LINKEDIN_DM"
+        | "COLD_EMAIL"
+        | "COLD_CALL"
+        | "EMAIL_REFERRAL"
+        | "COLD_OUTBOUND"
       EmailLabelType:
         | "MATCH_REMINDER"
         | "REFERRAL_REQUEST_AFTER_INTRO"
@@ -1673,6 +1961,13 @@ export type Database = {
         | "REQUEST_REJECTED"
         | "FOLLOW_UP_SENT"
       MatchType: "ON_CALL" | "EMAIL"
+      OutboundStatus:
+        | "NONE"
+        | "PROPOSED"
+        | "ACCEPTED"
+        | "REJECTED"
+        | "FOLLOW_UP"
+        | "COMPLETE"
       Relationship: "CALENDAR" | "LINKEDIN"
       Role: "ASSISTANT" | "USER" | "SYSTEM" | "TOOL"
       Tag:
