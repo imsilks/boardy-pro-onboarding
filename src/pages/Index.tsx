@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { fetchContactByPhone, getCronofyAuthUrl, isUrlReachable } from "@/lib/api";
@@ -133,7 +132,7 @@ const Index = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
       <div className="relative w-full max-w-md flex flex-col items-center z-10">
-        {/* Header with title and subtitle */}
+        {/* Header with title only */}
         <HeaderSection 
           fadeInTitle={fadeInTitle}
           fadeInSubtitle={fadeInSubtitle}
