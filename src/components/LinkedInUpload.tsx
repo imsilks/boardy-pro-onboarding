@@ -113,20 +113,20 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       
       setUploadError(errorMessage);
       
-      // Add a more detailed error message for helping users troubleshoot
-      const detailedError = document.createElement('div');
-      detailedError.innerHTML = `
-        <p>There was an error uploading your file.</p>
-        <ul>
-          <li>Check your internet connection</li>
-          <li>The API server might be down for maintenance</li>
-          <li>If this persists, please try again later or contact support</li>
-        </ul>
-      `;
-      
-      toast.error(detailedError, {
-        duration: 8000,
-      });
+      // Fix for the TypeScript error - use JSX instead of creating a DOM element
+      toast.error(
+        <div>
+          <p>There was an error uploading your file.</p>
+          <ul className="list-disc pl-4 mt-1">
+            <li>Check your internet connection</li>
+            <li>The API server might be down for maintenance</li>
+            <li>If this persists, please try again later or contact support</li>
+          </ul>
+        </div>,
+        {
+          duration: 8000,
+        }
+      );
     } finally {
       setIsUploading(false);
     }
