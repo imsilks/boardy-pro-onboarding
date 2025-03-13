@@ -43,9 +43,9 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     setIsUploading(true);
     setUploadError(null);
     try {
-      // Create FormData properly according to the API expectations
+      // Create FormData using the 'file' form field name to match curl command
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append('file', file);
       
       toast.info("Uploading your LinkedIn connections...");
       
@@ -53,14 +53,12 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       console.log("Attempting to upload to:", importUrl);
       console.log("File being uploaded:", file.name, file.type, file.size);
 
+      // Making request exactly like the curl command
       const response = await fetch(importUrl, {
         method: 'POST',
         body: formData,
-        headers: {
-          // Only include the Content-Type header if needed by the server
-          // Browsers will automatically set the correct Content-Type with boundary for FormData
-          // 'Content-Type': 'multipart/form-data' - Let the browser set this automatically
-        }
+        // Do not explicitly set Content-Type header
+        // Let the browser set the multipart/form-data boundary automatically
       });
       
       console.log("Response status:", response.status);
