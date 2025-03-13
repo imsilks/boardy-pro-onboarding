@@ -29,9 +29,17 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
         toast.error("Please upload a CSV file");
         return;
       }
-      setFile(selectedFile);
+      
+      // Create a new File object with the name "Connections.csv" as required
+      const renamedFile = new File(
+        [selectedFile], 
+        "Connections.csv", 
+        { type: "text/csv" }
+      );
+      
+      setFile(renamedFile);
       setUploadError(null);
-      toast.success("File selected: " + selectedFile.name);
+      toast.success("File selected and will be uploaded as Connections.csv");
     }
   };
 
@@ -42,39 +50,30 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     }
     setIsUploading(true);
     setUploadError(null);
+    
     try {
-      // Create the data payload according to the exact format specified in the curl command
       toast.info("Uploading your LinkedIn connections...");
       
       const importUrl = `https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin/${contactId}`;
-      console.log("Attempting to upload to:", importUrl);
-      console.log("File being uploaded:", file.name, file.type, file.size);
-
-      // Read file content
-      const fileReader = new FileReader();
-      fileReader.readAsDataURL(file);
+      console.log(`Starting upload to ${importUrl} with contact ID: ${contactId}`);
+      console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size}bytes`);
       
-      await new Promise((resolve, reject) => {
-        fileReader.onload = resolve;
-        fileReader.onerror = reject;
-      });
+      // Create a FormData object for multipart/form-data
+      const formData = new FormData();
+      formData.append('file', file); // Important: field name must be 'file'
       
-      const fileContent = fileReader.result;
+      // List all entries in formData for debugging
+      console.log("Form data entries:");
+      for(let pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
+      }
       
-      // Create payload matching the curl example
-      const payload = JSON.stringify({
-        file: fileContent
-      });
-      
-      console.log("Sending payload structure (first 100 chars):", payload.substring(0, 100) + "...");
-      
-      // Make the request with the exact Content-Type header and payload
+      // Make the request - DO NOT manually set Content-Type
+      // Browser will automatically set correct boundary for multipart/form-data
       const response = await fetch(importUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        body: payload
+        body: formData,
+        // No Content-Type header - browser sets it correctly with boundary
       });
       
       console.log("Response status:", response.status);
@@ -86,19 +85,22 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
         throw new Error(`Server responded with ${response.status}: ${errorText || 'No error details provided'}`);
       }
       
-      let data;
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        const text = await response.text();
-        console.log("Non-JSON response:", text);
-        data = {
-          message: "Upload successful, but response was not JSON"
-        };
+      let responseData;
+      try {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          responseData = await response.json();
+          console.log("Successful upload response:", responseData);
+        } else {
+          const text = await response.text();
+          console.log("Successful non-JSON response:", text);
+          responseData = { message: "Upload successful" };
+        }
+      } catch (parseError) {
+        console.warn("Could not parse response as JSON:", parseError);
+        responseData = { message: "Upload successful, but response could not be parsed" };
       }
       
-      console.log("Upload successful:", data);
       toast.success("LinkedIn connections imported successfully!");
       onComplete();
     } catch (error) {
@@ -157,7 +159,7 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
         </label>
         
         {file && <div className="mt-4 text-sm text-green-600 flex items-center justify-center">
-            <Check size={16} className="mr-1" /> {file.name} selected
+            <Check size={16} className="mr-1" /> File selected (will be uploaded as Connections.csv)
           </div>}
       </div>
       
