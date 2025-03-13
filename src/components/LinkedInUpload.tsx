@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Upload, FileUp, Check, AlertCircle } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
+
 interface LinkedInUploadProps {
   contactId: string;
   onComplete: () => void;
   onBack: () => void;
 }
+
 const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
   contactId,
   onComplete,
@@ -17,10 +19,10 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fadeInStyle = useFadeIn("up", 100);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // Check if it's a CSV file
       if (selectedFile.type !== "text/csv" && !selectedFile.name.endsWith(".csv")) {
         toast.error("Please upload a CSV file");
         return;
@@ -30,6 +32,7 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       toast.success("File selected: " + selectedFile.name);
     }
   };
+
   const handleUpload = async () => {
     if (!file) {
       toast.error("Please select a file first");
@@ -38,23 +41,19 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     setIsUploading(true);
     setUploadError(null);
     try {
-      // Use the external API endpoint
       const formData = new FormData();
       formData.append("file", file);
       toast.info("Uploading your LinkedIn connections...");
       const importUrl = `https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin/${contactId}`;
       console.log("Attempting to upload to:", importUrl);
 
-      // Try with mode: 'cors' explicitly to help debug CORS issues
       const response = await fetch(importUrl, {
         method: 'POST',
         body: formData,
         mode: 'cors',
         credentials: 'omit',
-        // Try without credentials
         headers: {
           'Accept': 'application/json',
-          // Add an origin header to help with CORS debugging
           'X-Requested-With': 'XMLHttpRequest'
         }
       });
@@ -80,25 +79,21 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     } catch (error) {
       console.error("Upload error details:", error);
 
-      // More specific error handling for CORS and network issues
       let errorMessage = "Failed to upload connections";
       if (error instanceof TypeError && error.message.includes('fetch')) {
         errorMessage = "Network error: The server may be down or unreachable";
         console.log("This appears to be a CORS or network connectivity issue. Check if the API endpoint allows requests from this origin.");
 
-        // For debugging - log the full error stack
         if (error.stack) {
           console.error("Error stack:", error.stack);
         }
 
-        // Provide more friendly user message
         toast.error("Connection to server failed. This might be due to CORS restrictions or the server being unavailable.");
       } else if (error instanceof Error) {
         errorMessage = error.message || "Unknown error occurred";
       }
       setUploadError(errorMessage);
 
-      // Fix for the TypeScript error - use JSX instead of creating a DOM element
       toast.error(<div>
           <p>There was an error uploading your file.</p>
           <ul className="list-disc pl-4 mt-1">
@@ -114,13 +109,13 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     }
   };
 
-  // Add an option to simulate successful upload for testing UI flows
   const handleSimulateSuccess = () => {
     if (import.meta.env.DEV) {
       toast.success("Simulated successful upload (DEV MODE)");
       onComplete();
     }
   };
+
   return <div className="w-full space-y-6" style={fadeInStyle}>
       <div className="text-center space-y-2">
         <h3 className="text-xl font-semibold text-gray-800">Import Your LinkedIn Connections</h3>
@@ -180,10 +175,11 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       
       <p className="text-center text-xs text-gray-500 mt-6">
         Need help exporting your LinkedIn connections? 
-        <a href="https://www.linkedin.com/help/linkedin/answer/a566335/export-connections-from-linkedin" target="_blank" rel="noopener noreferrer" className="text-primary ml-1 hover:underline">
+        <a href="https://www.linkedin.com/help/linkedin/answer/a1339364/downloading-your-account-data" target="_blank" rel="noopener noreferrer" className="text-primary ml-1 hover:underline">
           View LinkedIn guide
         </a>
       </p>
     </div>;
 };
+
 export default LinkedInUpload;
