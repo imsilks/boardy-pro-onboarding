@@ -43,22 +43,38 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     setIsUploading(true);
     setUploadError(null);
     try {
-      // Create FormData using the 'file' form field name to match curl command
-      const formData = new FormData();
-      formData.append('file', file);
-      
+      // Create the data payload according to the exact format specified in the curl command
       toast.info("Uploading your LinkedIn connections...");
       
       const importUrl = `https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin/${contactId}`;
       console.log("Attempting to upload to:", importUrl);
       console.log("File being uploaded:", file.name, file.type, file.size);
 
-      // Making request exactly like the curl command
+      // Read file content
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+      
+      await new Promise((resolve, reject) => {
+        fileReader.onload = resolve;
+        fileReader.onerror = reject;
+      });
+      
+      const fileContent = fileReader.result;
+      
+      // Create payload matching the curl example
+      const payload = JSON.stringify({
+        file: fileContent
+      });
+      
+      console.log("Sending payload structure (first 100 chars):", payload.substring(0, 100) + "...");
+      
+      // Make the request with the exact Content-Type header and payload
       const response = await fetch(importUrl, {
         method: 'POST',
-        body: formData,
-        // Do not explicitly set Content-Type header
-        // Let the browser set the multipart/form-data boundary automatically
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        body: payload
       });
       
       console.log("Response status:", response.status);
