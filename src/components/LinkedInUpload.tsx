@@ -1,9 +1,9 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, FileUp, Check, AlertCircle } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface LinkedInUploadProps {
   contactId: string;
@@ -47,18 +47,24 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     setUploadError(null);
     
     try {
-      // Use Supabase edge function
+      // Use the external API endpoint
       const formData = new FormData();
       formData.append("file", file);
       
       toast.info("Uploading your LinkedIn connections...");
       
-      const { data, error } = await supabase.functions.invoke('linkedin-import', {
-        body: formData,
+      const importUrl = `https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin/${contactId}`;
+      
+      const response = await fetch(importUrl, {
         method: 'POST',
+        body: formData,
       });
       
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}: ${await response.text()}`);
+      }
+      
+      const data = await response.json();
       
       console.log("Upload successful:", data);
       
