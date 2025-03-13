@@ -58,22 +58,23 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       console.log(`Starting upload to ${importUrl} with contact ID: ${contactId}`);
       console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size}bytes`);
       
-      // Create a FormData object for multipart/form-data
+      // Create a proper FormData object for multipart/form-data
       const formData = new FormData();
-      formData.append('file', file); // Important: field name must be 'file'
       
-      // List all entries in formData for debugging
+      // Important: The field must be named 'file' to match the expected format
+      formData.append('file', file);
+      
+      // Log FormData entries for debugging
       console.log("Form data entries:");
       for(let pair of formData.entries()) {
         console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
       }
       
-      // Make the request - DO NOT manually set Content-Type
-      // Browser will automatically set correct boundary for multipart/form-data
+      // Make the request - let the browser set the Content-Type header with proper boundary
       const response = await fetch(importUrl, {
         method: 'POST',
         body: formData,
-        // No Content-Type header - browser sets it correctly with boundary
+        // Do not set Content-Type header manually as browser needs to set the boundary
       });
       
       console.log("Response status:", response.status);
