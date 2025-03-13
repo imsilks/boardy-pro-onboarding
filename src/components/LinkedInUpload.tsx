@@ -1,10 +1,11 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, FileUp, Check, AlertCircle } from "lucide-react";
+import { Upload, FileUp, Check, AlertCircle, RefreshCw } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
 interface LinkedInUploadProps {
   contactId: string;
@@ -20,7 +21,38 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
+  const [canSimulateSuccess, setCanSimulateSuccess] = useState(false);
   const fadeInStyle = useFadeIn("up", 100);
+
+  // Check if in development mode for simulation option
+  useEffect(() => {
+    setCanSimulateSuccess(import.meta.env.DEV || false);
+    
+    // Reset progress animation when not uploading
+    if (!isUploading) {
+      setUploadProgress(0);
+    }
+  }, [isUploading]);
+
+  // Progress animation during upload
+  useEffect(() => {
+    let interval: number | null = null;
+    
+    if (isUploading && uploadProgress < 95) {
+      interval = window.setInterval(() => {
+        setUploadProgress(prev => {
+          const increment = prev < 30 ? 5 : prev < 70 ? 2 : 0.5;
+          return Math.min(prev + increment, 95);
+        });
+      }, 300);
+    }
+    
+    return () => {
+      if (interval !== null) window.clearInterval(interval);
+    };
+  }, [isUploading, uploadProgress]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -43,17 +75,24 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (useRetry = false) => {
     if (!file) {
       toast.error("Please select a file first");
       return;
     }
+    
     setIsUploading(true);
     setUploadError(null);
+    setUploadProgress(0);
+    
+    if (useRetry) {
+      setRetryCount(prev => prev + 1);
+      toast.info(`Retry attempt ${retryCount + 1}...`);
+    } else {
+      toast.info("Uploading your LinkedIn connections...");
+    }
     
     try {
-      toast.info("Uploading your LinkedIn connections...");
-      
       const importUrl = `https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin/${contactId}`;
       console.log(`Starting upload to ${importUrl} with contact ID: ${contactId}`);
       console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size}bytes`);
@@ -70,46 +109,67 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
         console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
       }
       
-      // Make the request - let the browser set the Content-Type header with proper boundary
-      const response = await fetch(importUrl, {
-        method: 'POST',
-        body: formData,
-        // Do not set Content-Type header manually as browser needs to set the boundary
-      });
+      // Set longer timeout for the request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
-      console.log("Response status:", response.status);
-      console.log("Response headers:", Object.fromEntries([...response.headers.entries()]));
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Upload failed with status ${response.status}:`, errorText);
-        throw new Error(`Server responded with ${response.status}: ${errorText || 'No error details provided'}`);
-      }
-      
-      let responseData;
       try {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          responseData = await response.json();
-          console.log("Successful upload response:", responseData);
-        } else {
-          const text = await response.text();
-          console.log("Successful non-JSON response:", text);
-          responseData = { message: "Upload successful" };
+        // Make the request - let the browser set the Content-Type header with proper boundary
+        const response = await fetch(importUrl, {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+          // Do not set Content-Type header manually as browser needs to set the boundary
+        });
+        
+        clearTimeout(timeoutId);
+        
+        console.log("Response status:", response.status);
+        console.log("Response headers:", Object.fromEntries([...response.headers.entries()]));
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Upload failed with status ${response.status}:`, errorText);
+          throw new Error(`Server responded with ${response.status}: ${errorText || 'No error details provided'}`);
         }
-      } catch (parseError) {
-        console.warn("Could not parse response as JSON:", parseError);
-        responseData = { message: "Upload successful, but response could not be parsed" };
+        
+        // Set progress to 100% on success
+        setUploadProgress(100);
+        
+        let responseData;
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            responseData = await response.json();
+            console.log("Successful upload response:", responseData);
+          } else {
+            const text = await response.text();
+            console.log("Successful non-JSON response:", text);
+            responseData = { message: "Upload successful" };
+          }
+        } catch (parseError) {
+          console.warn("Could not parse response as JSON:", parseError);
+          responseData = { message: "Upload successful, but response could not be parsed" };
+        }
+        
+        toast.success("LinkedIn connections imported successfully!");
+        
+        // Small delay before completing to show the 100% progress
+        setTimeout(() => {
+          onComplete();
+        }, 1000);
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        throw fetchError; // Re-throw to be handled by the outer catch
       }
-      
-      toast.success("LinkedIn connections imported successfully!");
-      onComplete();
     } catch (error) {
       console.error("Upload error details:", error);
 
       let errorMessage = "Failed to upload connections";
       if (error instanceof TypeError && error.message.includes('fetch')) {
         errorMessage = "Network error: The server may be down or unreachable";
+      } else if (error instanceof DOMException && error.name === 'AbortError') {
+        errorMessage = "The request timed out. The server might be busy.";
       } else if (error instanceof Error) {
         errorMessage = error.message || "Unknown error occurred";
       }
@@ -132,11 +192,31 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     }
   };
   
+  const handleRetry = () => {
+    handleUpload(true);
+  };
+  
   // For development, providing a fallback option to bypass the upload
   const handleSimulateSuccess = () => {
-    if (import.meta.env.DEV) {
-      toast.success("Simulated successful upload (DEV MODE)");
-      onComplete();
+    if (canSimulateSuccess) {
+      setIsUploading(true);
+      setUploadProgress(0);
+      
+      // Simulate the upload with a progress animation
+      const interval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+              toast.success("Simulated successful upload (DEV MODE)");
+              setIsUploading(false);
+              onComplete();
+            }, 500);
+            return 100;
+          }
+          return prev + 5;
+        });
+      }, 100);
     }
   };
 
@@ -164,6 +244,16 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
           </div>}
       </div>
       
+      {isUploading && (
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>Uploading...</span>
+            <span>{uploadProgress.toFixed(0)}%</span>
+          </div>
+          <Progress value={uploadProgress} className="h-2" />
+        </div>
+      )}
+      
       {uploadError && (
         <Alert variant="destructive" className="bg-red-50 text-red-800 border-red-200">
           <AlertCircle className="h-4 w-4 mr-2" />
@@ -172,6 +262,15 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
             <p className="mt-1 text-xs text-red-600">
               This might be due to a CORS issue or server unavailability. In development mode, you can use the "Simulate Success" option below.
             </p>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRetry} 
+              className="mt-2 bg-red-50 border-red-200 hover:bg-red-100 text-red-800"
+            >
+              <RefreshCw size={14} className="mr-1" /> Try Again
+            </Button>
           </AlertDescription>
         </Alert>
       )}
@@ -181,7 +280,11 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
           Back
         </Button>
         
-        <Button onClick={handleUpload} disabled={!file || isUploading} className="flex-1">
+        <Button 
+          onClick={() => handleUpload(false)} 
+          disabled={!file || isUploading} 
+          className="flex-1"
+        >
           {isUploading ? (
             <>
               <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
@@ -196,7 +299,7 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
         </Button>
       </div>
       
-      {import.meta.env.DEV && (
+      {canSimulateSuccess && (
         <div className="mt-4">
           <Button variant="secondary" size="sm" onClick={handleSimulateSuccess} className="w-full text-xs">
             Simulate Success (DEV)
