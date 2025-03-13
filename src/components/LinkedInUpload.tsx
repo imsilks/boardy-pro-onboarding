@@ -43,26 +43,23 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     setIsUploading(true);
     setUploadError(null);
     try {
+      // Create FormData properly according to the API expectations
       const formData = new FormData();
       formData.append("file", file);
+      
       toast.info("Uploading your LinkedIn connections...");
       
-      // Updated import URL with no-cors approach
       const importUrl = `https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin/${contactId}`;
       console.log("Attempting to upload to:", importUrl);
+      console.log("File being uploaded:", file.name, file.type, file.size);
 
-      // Modified request options to better handle CORS
       const response = await fetch(importUrl, {
         method: 'POST',
         body: formData,
-        // Try with no-cors mode to bypass CORS issues (for testing)
-        // This won't provide a readable response but can be used to test if request goes through
-        // mode: 'no-cors',
-        credentials: 'omit',
         headers: {
-          'Accept': 'application/json',
-          // Remove custom headers that might trigger preflight requests
-          // 'X-Requested-With': 'XMLHttpRequest'
+          // Only include the Content-Type header if needed by the server
+          // Browsers will automatically set the correct Content-Type with boundary for FormData
+          // 'Content-Type': 'multipart/form-data' - Let the browser set this automatically
         }
       });
       
@@ -96,11 +93,6 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       let errorMessage = "Failed to upload connections";
       if (error instanceof TypeError && error.message.includes('fetch')) {
         errorMessage = "Network error: The server may be down or unreachable";
-        console.log("This appears to be a CORS or network connectivity issue. Check if the API endpoint allows requests from this origin.");
-
-        if (error.stack) {
-          console.error("Error stack:", error.stack);
-        }
       } else if (error instanceof Error) {
         errorMessage = error.message || "Unknown error occurred";
       }
