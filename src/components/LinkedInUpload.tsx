@@ -57,13 +57,16 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       
       console.log("Attempting to upload to:", importUrl);
       
+      // Try with mode: 'cors' explicitly to help debug CORS issues
       const response = await fetch(importUrl, {
         method: 'POST',
         body: formData,
-        // Adding these headers may help with CORS issues
+        mode: 'cors',
+        credentials: 'omit', // Try without credentials
         headers: {
-          // Don't set Content-Type for FormData as the browser will set it with the boundary
           'Accept': 'application/json',
+          // Add an origin header to help with CORS debugging
+          'X-Requested-With': 'XMLHttpRequest',
         },
       });
       
@@ -90,19 +93,50 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     } catch (error) {
       console.error("Upload error details:", error);
       
-      // More specific error handling
+      // More specific error handling for CORS and network issues
       let errorMessage = "Failed to upload connections";
       
       if (error instanceof TypeError && error.message.includes('fetch')) {
         errorMessage = "Network error: The server may be down or unreachable";
+        console.log("This appears to be a CORS or network connectivity issue. Check if the API endpoint allows requests from this origin.");
+        
+        // For debugging - log the full error stack
+        if (error.stack) {
+          console.error("Error stack:", error.stack);
+        }
+        
+        // Provide more friendly user message
+        toast.error("Connection to server failed. This might be due to CORS restrictions or the server being unavailable.");
       } else if (error instanceof Error) {
         errorMessage = error.message || "Unknown error occurred";
       }
       
       setUploadError(errorMessage);
-      toast.error("Failed to upload: " + errorMessage);
+      
+      // Add a more detailed error message for helping users troubleshoot
+      const detailedError = document.createElement('div');
+      detailedError.innerHTML = `
+        <p>There was an error uploading your file.</p>
+        <ul>
+          <li>Check your internet connection</li>
+          <li>The API server might be down for maintenance</li>
+          <li>If this persists, please try again later or contact support</li>
+        </ul>
+      `;
+      
+      toast.error(detailedError, {
+        duration: 8000,
+      });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  // Add an option to simulate successful upload for testing UI flows
+  const handleSimulateSuccess = () => {
+    if (import.meta.env.DEV) {
+      toast.success("Simulated successful upload (DEV MODE)");
+      onComplete();
     }
   };
 
@@ -145,7 +179,13 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       {uploadError && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm flex items-start">
           <AlertCircle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
-          <span>{uploadError}</span>
+          <div>
+            <p className="font-medium">Upload failed</p>
+            <p>{uploadError}</p>
+            <p className="mt-1 text-xs text-red-500">
+              This might be due to a CORS issue or server unavailability. Please try again later.
+            </p>
+          </div>
         </div>
       )}
       
@@ -176,6 +216,19 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
           )}
         </Button>
       </div>
+      
+      {import.meta.env.DEV && (
+        <div className="mt-4">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            onClick={handleSimulateSuccess}
+            className="w-full text-xs"
+          >
+            Simulate Success (DEV)
+          </Button>
+        </div>
+      )}
       
       <p className="text-center text-xs text-gray-500 mt-6">
         Need help exporting your LinkedIn connections? 
