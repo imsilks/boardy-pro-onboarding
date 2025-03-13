@@ -1,11 +1,14 @@
 
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Upload, FileUp, Check, AlertCircle, RefreshCw } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
+
+// Import our newly created components
+import FileUploadArea from "./linkedin/FileUploadArea";
+import UploadProgress from "./linkedin/UploadProgress";
+import UploadError from "./linkedin/UploadError";
+import ActionButtons from "./linkedin/ActionButtons";
+import HelpText from "./linkedin/HelpText";
 
 interface LinkedInUploadProps {
   contactId: string;
@@ -54,25 +57,9 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     };
   }, [isUploading, uploadProgress]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      if (selectedFile.type !== "text/csv" && !selectedFile.name.endsWith(".csv")) {
-        toast.error("Please upload a CSV file");
-        return;
-      }
-      
-      // Create a new File object with the name "Connections.csv" as required
-      const renamedFile = new File(
-        [selectedFile], 
-        "Connections.csv", 
-        { type: "text/csv" }
-      );
-      
-      setFile(renamedFile);
-      setUploadError(null);
-      toast.success("File selected and will be uploaded as Connections.csv");
-    }
+  const handleFileSelect = (selectedFile: File) => {
+    setFile(selectedFile);
+    setUploadError(null);
   };
 
   const handleUpload = async (useRetry = false) => {
@@ -220,100 +207,40 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     }
   };
 
-  return <div className="w-full space-y-6" style={fadeInStyle}>
+  return (
+    <div className="w-full space-y-6" style={fadeInStyle}>
       <div className="text-center space-y-2">
         <h3 className="text-xl font-semibold text-gray-800">Import Your LinkedIn Connections</h3>
         <p className="text-gray-600">Upload your LinkedIn connections CSV</p>
       </div>
       
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
-        <input type="file" id="file-upload" onChange={handleFileChange} className="hidden" accept=".csv" />
-        
-        <label htmlFor="file-upload" className="flex flex-col items-center justify-center cursor-pointer">
-          <Upload size={40} className="text-gray-400 mb-2" />
-          <span className="text-sm text-gray-500 mb-1">
-            {file ? file.name : "Click to select your CSV file"}
-          </span>
-          <span className="text-xs text-gray-400">
-            Export from LinkedIn and upload here
-          </span>
-        </label>
-        
-        {file && <div className="mt-4 text-sm text-green-600 flex items-center justify-center">
-            <Check size={16} className="mr-1" /> File selected (will be uploaded as Connections.csv)
-          </div>}
-      </div>
+      <FileUploadArea 
+        file={file} 
+        onFileSelect={handleFileSelect} 
+      />
       
-      {isUploading && (
-        <div className="space-y-2">
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>Uploading...</span>
-            <span>{uploadProgress.toFixed(0)}%</span>
-          </div>
-          <Progress value={uploadProgress} className="h-2" />
-        </div>
-      )}
+      <UploadProgress 
+        isUploading={isUploading} 
+        progress={uploadProgress} 
+      />
       
-      {uploadError && (
-        <Alert variant="destructive" className="bg-red-50 text-red-800 border-red-200">
-          <AlertCircle className="h-4 w-4 mr-2" />
-          <AlertDescription>
-            <p className="font-medium">{uploadError}</p>
-            <p className="mt-1 text-xs text-red-600">
-              This might be due to a CORS issue or server unavailability. In development mode, you can use the "Simulate Success" option below.
-            </p>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRetry} 
-              className="mt-2 bg-red-50 border-red-200 hover:bg-red-100 text-red-800"
-            >
-              <RefreshCw size={14} className="mr-1" /> Try Again
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
+      <UploadError 
+        error={uploadError} 
+        onRetry={handleRetry} 
+      />
       
-      <div className="flex justify-between gap-4">
-        <Button variant="outline" onClick={onBack} className="flex-1">
-          Back
-        </Button>
-        
-        <Button 
-          onClick={() => handleUpload(false)} 
-          disabled={!file || isUploading} 
-          className="flex-1"
-        >
-          {isUploading ? (
-            <>
-              <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-              Uploading...
-            </>
-          ) : (
-            <>
-              <FileUp size={18} className="mr-2" />
-              Upload
-            </>
-          )}
-        </Button>
-      </div>
+      <ActionButtons 
+        onBack={onBack}
+        onUpload={() => handleUpload(false)}
+        isUploading={isUploading}
+        isFileSelected={!!file}
+        canSimulateSuccess={canSimulateSuccess}
+        onSimulateSuccess={handleSimulateSuccess}
+      />
       
-      {canSimulateSuccess && (
-        <div className="mt-4">
-          <Button variant="secondary" size="sm" onClick={handleSimulateSuccess} className="w-full text-xs">
-            Simulate Success (DEV)
-          </Button>
-        </div>
-      )}
-      
-      <p className="text-center text-xs text-gray-500 mt-6">
-        Need help exporting your LinkedIn connections? 
-        <a href="https://www.linkedin.com/help/linkedin/answer/a1339364/downloading-your-account-data" target="_blank" rel="noopener noreferrer" className="text-primary ml-1 hover:underline">
-          View LinkedIn guide
-        </a>
-      </p>
-    </div>;
+      <HelpText />
+    </div>
+  );
 };
 
 export default LinkedInUpload;
