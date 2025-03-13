@@ -98,15 +98,20 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       
       // Set longer timeout for the request
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // Increased to 60 second timeout
       
       try {
-        // Make the request - let the browser set the Content-Type header with proper boundary
+        // Make the request with more explicit CORS options
         const response = await fetch(importUrl, {
           method: 'POST',
           body: formData,
           signal: controller.signal,
-          // Do not set Content-Type header manually as browser needs to set the boundary
+          mode: 'cors',
+          credentials: 'omit', // Don't send cookies
+          headers: {
+            // Only set essential headers, let browser set content-type with boundary
+            'Accept': 'application/json'
+          }
         });
         
         clearTimeout(timeoutId);
@@ -154,7 +159,7 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
 
       let errorMessage = "Failed to upload connections";
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        errorMessage = "Network error: The server may be down or unreachable";
+        errorMessage = "Network error: The server may be down, unreachable, or blocking cross-origin requests (CORS issue)";
       } else if (error instanceof DOMException && error.name === 'AbortError') {
         errorMessage = "The request timed out. The server might be busy.";
       } else if (error instanceof Error) {
@@ -168,8 +173,9 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
           <p>There was an error uploading your file.</p>
           <ul className="list-disc pl-4 mt-1">
             <li>Check your internet connection</li>
+            <li>This might be a CORS issue - the server may not allow uploads from this domain</li>
             <li>The API server might be down for maintenance</li>
-            <li>If this persists, please try again later or contact support</li>
+            <li>If in development, please use the "Simulate Success" option</li>
           </ul>
         </div>, 
         { duration: 8000 }
