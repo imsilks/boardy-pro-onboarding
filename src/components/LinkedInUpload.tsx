@@ -55,25 +55,52 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       
       const importUrl = `https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin/${contactId}`;
       
+      console.log("Attempting to upload to:", importUrl);
+      
       const response = await fetch(importUrl, {
         method: 'POST',
         body: formData,
+        // Adding these headers may help with CORS issues
+        headers: {
+          // Don't set Content-Type for FormData as the browser will set it with the boundary
+          'Accept': 'application/json',
+        },
       });
       
       if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${await response.text()}`);
+        const errorText = await response.text();
+        console.error(`Upload failed with status ${response.status}:`, errorText);
+        throw new Error(`Server responded with ${response.status}: ${errorText || 'No error details provided'}`);
       }
       
-      const data = await response.json();
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.log("Non-JSON response:", text);
+        data = { message: "Upload successful, but response was not JSON" };
+      }
       
       console.log("Upload successful:", data);
       
       toast.success("LinkedIn connections imported successfully!");
       onComplete();
     } catch (error) {
-      console.error("Upload error:", error);
-      setUploadError(error.message || "Failed to upload connections");
-      toast.error("Failed to upload: " + (error.message || "Unknown error"));
+      console.error("Upload error details:", error);
+      
+      // More specific error handling
+      let errorMessage = "Failed to upload connections";
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = "Network error: The server may be down or unreachable";
+      } else if (error instanceof Error) {
+        errorMessage = error.message || "Unknown error occurred";
+      }
+      
+      setUploadError(errorMessage);
+      toast.error("Failed to upload: " + errorMessage);
     } finally {
       setIsUploading(false);
     }
