@@ -75,17 +75,22 @@ serve(async (req) => {
         if (existingContact) {
           linkedContactId = existingContact.id
         } else {
-          const { data: newContact } = await supabaseClient
+          // Fixed: Removed the createdVia field that was causing the error
+          const { data: newContact, error } = await supabaseClient
             .from('Contact')
             .insert({
               email: contact.email,
               firstName: contact.firstName,
               lastName: contact.lastName,
-              fullName: contact.fullName,
-              createdVia: 'LINKEDIN_IMPORT'
+              fullName: contact.fullName
             })
             .select('id')
             .single()
+          
+          if (error) {
+            console.error('Error creating contact:', error)
+            continue
+          }
           
           linkedContactId = newContact.id
         }

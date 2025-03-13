@@ -1934,6 +1934,24 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      search_calls_with_fellowship: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          contactId: string
+          createdAt: string
+          endedAt: string | null
+          endedReason: Database["public"]["Enums"]["EndOfCallReason"] | null
+          id: string
+          recordingUrl: string | null
+          retellCallId: string | null
+          startedAt: string | null
+          summary: string | null
+          transcript: Json | null
+          transcriptWithToolCalls: Json | null
+          updatedAt: string
+          vapiCallId: string | null
+        }[]
+      }
     }
     Enums: {
       CreatedVia:
