@@ -47,7 +47,8 @@ serve(async (req) => {
     const response = await fetch(importUrl, {
       method: 'POST',
       body: forwardFormData,
-      // Note: We do not manually set Content-Type for multipart/form-data
+      // No need to set Content-Type header when sending FormData, the browser sets it automatically
+      // with the correct boundary parameter
     });
 
     // Get the response from the external API

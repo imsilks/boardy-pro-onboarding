@@ -180,10 +180,12 @@ export const uploadLinkedInConnections = async (contactId: string, file: File): 
       console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
     }
     
-    // Call our secure Supabase Edge Function instead of the external API directly
-    const { data, error } = await supabase.functions.invoke('linkedin-import/' + contactId, {
+    // Call our secure Edge Function instead of the external API directly
+    // The edge function will forward the request to the external API
+    const { data, error } = await supabase.functions.invoke(`linkedin-import/${contactId}`, {
       method: 'POST',
       body: formData,
+      // No need to set Content-Type header when sending FormData, it's set automatically
     });
     
     if (error) {
