@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Types for our API
 export interface Contact {
@@ -11,7 +12,6 @@ export interface Contact {
 // Base URLs for our APIs
 const SUPABASE_URL = "https://zprsisdofgrlsgcmtlgj-rr-us-east-1-jkjqy.supabase.co";
 const CRONOFY_BASE_URL = "https://boardy-server-v36-production.up.railway.app/api/cronofy/auth";
-const LINKEDIN_IMPORT_BASE_URL = "https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin";
 const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxMTkzOTAsImV4cCI6MjA0NzY5NTM5MH0.F0oWS3trwHiyKkRIrETs3g6-544JMFWwylwdJP4QiYQ";
 
 // Fetch contact by phone number
@@ -167,8 +167,12 @@ export const formatPhoneNumber = (phone: string): string => {
 // Upload LinkedIn connections CSV for a specific contact
 export const uploadLinkedInConnections = async (contactId: string, file: File): Promise<boolean> => {
   try {
-    const importUrl = `${LINKEDIN_IMPORT_BASE_URL}/${contactId}`;
-    console.log(`Uploading LinkedIn connections to ${importUrl}`);
+    if (!contactId) {
+      console.error("Contact ID is required for LinkedIn upload");
+      throw new Error("Contact ID is required for LinkedIn upload");
+    }
+    
+    console.log(`Uploading LinkedIn connections for contact ID: ${contactId}`);
     console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size}bytes`);
     
     // Create FormData for multipart/form-data upload
@@ -181,36 +185,36 @@ export const uploadLinkedInConnections = async (contactId: string, file: File): 
       console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
     }
     
-    // Make the request
-    const response = await fetch(importUrl, {
+    // Direct API endpoint with contactId appended
+    const apiUrl = `https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin/${contactId}`;
+    console.log(`Uploading to: ${apiUrl}`);
+    
+    // Set up fetch with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       body: formData,
-      // Important: Don't manually set Content-Type header for multipart/form-data
-      // The browser will automatically set it with the correct boundary
+      signal: controller.signal
     });
     
-    console.log("Response status:", response.status);
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Upload failed with status ${response.status}:`, errorText);
-      throw new Error(`Server responded with ${response.status}: ${errorText || 'No error details provided'}`);
+      console.error(`Upload failed with status ${response.status}: ${errorText}`);
+      throw new Error(`Server responded with ${response.status}: ${errorText}`);
     }
     
-    let responseData;
-    try {
-      responseData = await response.json();
-      console.log("Successful upload response:", responseData);
-    } catch (parseError) {
-      console.warn("Could not parse response as JSON:", parseError);
-      const text = await response.text();
-      console.log("Response text:", text);
-      responseData = { message: "Upload successful, but response could not be parsed" };
-    }
-    
+    const data = await response.json();
+    console.log("Successful upload response:", data);
     return true;
   } catch (error) {
     console.error("Error uploading LinkedIn connections:", error);
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error("Upload request timed out. The server might be busy or there might be a network issue.");
+    }
     throw error;
   }
 };
