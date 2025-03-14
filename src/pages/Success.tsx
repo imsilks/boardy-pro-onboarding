@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Calendar, RefreshCw, ArrowLeft, ArrowRight } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const Success = () => {
   const location = useLocation();
@@ -35,6 +36,17 @@ const Success = () => {
       toast.success("Calendar connected successfully! Welcome back.");
     }
   }, [location]);
+
+  // Debug current state
+  useEffect(() => {
+    console.log("Current states:", { 
+      contactId, 
+      returningFromCronofy, 
+      connecting, 
+      connectionError, 
+      currentUrl: window.location.href 
+    });
+  }, [contactId, returningFromCronofy, connecting, connectionError]);
 
   const handleConnectCalendar = async () => {
     if (!contactId) {
@@ -138,6 +150,12 @@ const Success = () => {
                       Connect another calendar
                     </Button>
                   </>
+                ) : connecting ? (
+                  // Show loading state when connecting
+                  <div className="text-center py-2">
+                    <LoadingSpinner size="md" className="mx-auto mb-3" />
+                    <p className="text-sm text-gray-600">Connecting to calendar service...</p>
+                  </div>
                 ) : connectionError ? (
                   // Show this when there's a connection error
                   <>
