@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Calendar, RefreshCw, ArrowLeft } from "lucide-react";
+import { CheckCircle, Calendar, RefreshCw, ArrowLeft, ArrowRight } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 
@@ -118,13 +118,24 @@ const Success = () => {
               
               <div className="w-full space-y-3">
                 {returningFromCronofy ? (
-                  // Show this when returning from Cronofy
-                  <Button 
-                    className="w-full bg-green-600 hover:bg-green-700" 
-                    onClick={handleContinue}
-                  >
-                    Continue Onboarding
-                  </Button>
+                  // Show these buttons when returning from Cronofy after successful connection
+                  <>
+                    <Button 
+                      className="w-full bg-green-600 hover:bg-green-700" 
+                      onClick={handleContinue}
+                    >
+                      I'm good, let's move on
+                      <ArrowRight className="ml-2" size={18} />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={handleConnectCalendar}
+                    >
+                      <Calendar className="mr-2" size={18} />
+                      Connect another calendar
+                    </Button>
+                  </>
                 ) : connectionError ? (
                   // Show this when there's a connection error
                   <>
