@@ -25,6 +25,8 @@ const Success = () => {
     const id = params.get("contactId");
     const fromCronofy = params.get("fromCronofy");
     
+    console.log("Query params:", { id, fromCronofy });
+    
     setContactId(id);
     
     // Check if returning from Cronofy
