@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { getCronofyAuthUrl, isUrlReachable, formatPhoneNumber } from "@/lib/api";
@@ -29,8 +30,9 @@ const Index = () => {
     try {
       console.log("Submitted phone number:", phone);
       
-      // Use our secure backend API for contact lookup
+      // Try with multiple backup strategies for contact lookup
       const contactResult = await fetchContactByPhoneSecure(phone);
+      
       if (!contactResult) {
         console.error("No contact found for phone:", phone);
         setLoading(false);

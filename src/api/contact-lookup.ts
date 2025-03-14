@@ -4,6 +4,7 @@
  * This file contains functions for interacting with the backend API
  */
 import { toast } from "sonner";
+import { fetchContactByPhone } from "@/lib/api";
 
 export interface ContactLookupResponse {
   id: string;
@@ -17,7 +18,7 @@ export interface ContactLookupResponse {
 }
 
 /**
- * Fetch contact by phone number using external API endpoint
+ * Fetch contact by phone number using external API endpoint with fallback to Supabase
  */
 export const fetchContactByPhoneSecure = async (phone: string): Promise<ContactLookupResponse | null> => {
   try {
@@ -29,40 +30,63 @@ export const fetchContactByPhoneSecure = async (phone: string): Promise<ContactL
     // Normalize phone number to remove non-digit characters
     const normalizedPhone = phone.replace(/\D/g, '');
     
-    // Construct the API URL with the phone number
-    const apiUrl = `https://boardy-server-v36-production.up.railway.app/contact?phone=${encodeURIComponent(phone)}`;
-    console.log("🔗 Making API request to:", apiUrl);
-    
-    // Make the API request
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) {
-      console.error(`❌ API error: ${response.status} ${response.statusText}`);
-      toast.error('API error. Please try again.');
-      return null;
+    // First try the external API
+    try {
+      // Construct the API URL with the phone number
+      const apiUrl = `https://boardy-server-v36-production.up.railway.app/contact?phone=${encodeURIComponent(phone)}`;
+      console.log("🔗 Making API request to:", apiUrl);
+      
+      // Make the API request with a timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const response = await fetch(apiUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        // Parse the response
+        const contactData = await response.json();
+        console.log("📋 External API returned data:", contactData);
+        
+        if (contactData && contactData.id) {
+          console.log("✅ Found contact with ID:", contactData.id);
+          toast.success(`Found your account! ${contactData.fullName ? `Hello, ${contactData.fullName}!` : ''}`);
+          return {
+            success: true,
+            id: contactData.id,
+            phone: contactData.phone,
+            fullName: contactData.fullName,
+            firstName: contactData.firstName,
+            lastName: contactData.lastName,
+            email: contactData.email
+          };
+        }
+      }
+      
+      console.log("🔄 External API failed, trying Supabase fallback...");
+    } catch (error) {
+      console.log("🔄 External API error, trying Supabase fallback...", error);
     }
     
-    // Parse the response
-    const contactData = await response.json();
-    console.log("📋 API returned data:", contactData);
+    // If external API fails or returns no results, fall back to Supabase
+    const supabaseResult = await fetchContactByPhone(phone);
     
-    if (contactData && contactData.id) {
-      console.log("✅ Found contact with ID:", contactData.id);
-      toast.success(`Found your account! ${contactData.fullName ? `Hello, ${contactData.fullName}!` : ''}`);
+    if (supabaseResult) {
+      console.log("✅ Found contact in Supabase with ID:", supabaseResult.id);
+      toast.success(`Found your account! ${supabaseResult.fullName ? `Hello, ${supabaseResult.fullName}!` : ''}`);
+      
       return {
         success: true,
-        id: contactData.id,
-        phone: contactData.phone,
-        fullName: contactData.fullName,
-        firstName: contactData.firstName,
-        lastName: contactData.lastName,
-        email: contactData.email
+        id: supabaseResult.id,
+        phone: supabaseResult.phone,
+        fullName: supabaseResult.fullName
       };
-    } else {
-      console.log("❌ No contact found for phone number:", phone);
-      toast.error("No account found with this phone number");
-      return null;
     }
+    
+    // No contact found in either API or Supabase
+    console.log("❌ No contact found for phone number:", phone);
+    toast.error("No account found with this phone number");
+    return null;
   } catch (error) {
     console.error('❌ Error fetching contact:', error);
     toast.error('Failed to find your contact information');
