@@ -6,11 +6,13 @@ import { Phone, ArrowRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFadeIn } from "@/lib/animations";
 import { formatPhoneNumber } from "@/lib/api";
+
 interface PhoneInputProps {
   onSubmit: (phone: string) => void;
   isLoading: boolean;
   isValid: boolean;
 }
+
 const PhoneInput: React.FC<PhoneInputProps> = ({
   onSubmit,
   isLoading,
@@ -21,6 +23,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const [touched, setTouched] = useState(false);
   const [formatted, setFormatted] = useState("");
   const fadeInStyle = useFadeIn("up", 100);
+
   useEffect(() => {
     const digits = phone.replace(/\D/g, "");
     let result = "";
@@ -30,25 +33,29 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
     }
     setFormatted(result);
   }, [phone]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     const filtered = input.replace(/[^\d+\s()-]/g, "");
     setPhone(filtered);
     setTouched(true);
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isPhoneValid()) {
-      // Use the formatted phone number for lookup
-      const formattedForLookup = formatPhoneNumber(phone.replace(/\D/g, ""));
-      console.log("Submitting formatted phone:", formattedForLookup);
-      onSubmit(phone.replace(/\D/g, ""));
+      // Just send the raw digits to the API - formatting will happen on backend
+      const digitsOnly = phone.replace(/\D/g, "");
+      console.log("Submitting phone digits:", digitsOnly);
+      onSubmit(digitsOnly);
     }
   };
+
   const isPhoneValid = () => {
     const digits = phone.replace(/\D/g, "");
     return digits.length >= 7 && digits.length <= 15;
   };
+
   return <form onSubmit={handleSubmit} className="w-full space-y-4" style={fadeInStyle}>
       <div className="space-y-2">
         <Label htmlFor="phone" className="">Enter Your Phone Number</Label>
@@ -77,4 +84,5 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
       </Button>
     </form>;
 };
+
 export default PhoneInput;
