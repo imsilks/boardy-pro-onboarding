@@ -80,7 +80,7 @@ const Success = () => {
   const handleReturnHome = () => {
     navigate("/");
   };
-  return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
+  return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50 rounded">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
       <div className="relative w-full max-w-md flex flex-col items-center z-10">
@@ -130,7 +130,7 @@ const Success = () => {
                   Connect another calendar
                 </Button>
                 
-                <Button onClick={handleContinue} disabled={connecting} className="w-full bg-slate-50 text-slate-950">
+                <Button onClick={handleContinue} disabled={connecting} className="w-full text-slate-950 rounded-sm bg-slate-300 hover:bg-slate-200">
                   I'm good, let's move on
                   <ArrowRight className="ml-2" size={18} />
                 </Button>
