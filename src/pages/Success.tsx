@@ -109,7 +109,7 @@ const Success = () => {
           <p className="text-lg text-gray-600">
             {returningFromCronofy 
               ? "Your calendar has been successfully connected" 
-              : "Your phone number has been verified"}
+              : "We've successfully connected your calendar"}
           </p>
         </div>
 
@@ -123,9 +123,7 @@ const Success = () => {
               <div className="text-center">
                 <h2 className="text-xl font-semibold mb-2">Thank You!</h2>
                 <p className="text-gray-600 mb-6">
-                  {returningFromCronofy 
-                    ? "We've successfully connected your calendar."
-                    : "We've successfully verified your account."}
+                  We've successfully connected your calendar.
                   {contactId && <span className="text-xs block mt-2 text-gray-400">ID: {contactId}</span>}
                 </p>
               </div>
@@ -146,13 +144,13 @@ const Success = () => {
                 
                 {/* Button order changed: "Connect calendar" now comes first */}
                 <Button 
-                  variant="outline" 
+                  variant="default" 
                   className="w-full"
                   onClick={handleConnectCalendar}
                   disabled={connecting}
                 >
                   <Calendar className="mr-2" size={18} />
-                  Connect {returningFromCronofy ? "another" : "your"} calendar
+                  Connect another calendar
                 </Button>
                 
                 <Button 
