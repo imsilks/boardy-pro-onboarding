@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
+import { uploadLinkedInConnections } from "@/lib/api";
 
-// Import our newly created components
+// Import our components
 import FileUploadArea from "./linkedin/FileUploadArea";
 import UploadProgress from "./linkedin/UploadProgress";
 import UploadError from "./linkedin/UploadError";
@@ -80,80 +80,17 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     }
     
     try {
-      const importUrl = `https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin/${contactId}`;
-      console.log(`Starting upload to ${importUrl} with contact ID: ${contactId}`);
-      console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size}bytes`);
+      // Use the new API function for uploading
+      await uploadLinkedInConnections(contactId, file);
       
-      // Create a proper FormData object for multipart/form-data
-      const formData = new FormData();
+      // Set progress to 100% on success
+      setUploadProgress(100);
+      toast.success("LinkedIn connections imported successfully!");
       
-      // Important: The field must be named 'file' to match the expected format
-      formData.append('file', file);
-      
-      // Log FormData entries for debugging
-      console.log("Form data entries:");
-      for(let pair of formData.entries()) {
-        console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
-      }
-      
-      // Set longer timeout for the request
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // Increased to 60 second timeout
-      
-      try {
-        // Make the request with more explicit CORS options
-        const response = await fetch(importUrl, {
-          method: 'POST',
-          body: formData,
-          signal: controller.signal,
-          mode: 'cors',
-          credentials: 'omit', // Don't send cookies
-          headers: {
-            // Only set essential headers, let browser set content-type with boundary
-            'Accept': 'application/json'
-          }
-        });
-        
-        clearTimeout(timeoutId);
-        
-        console.log("Response status:", response.status);
-        console.log("Response headers:", Object.fromEntries([...response.headers.entries()]));
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Upload failed with status ${response.status}:`, errorText);
-          throw new Error(`Server responded with ${response.status}: ${errorText || 'No error details provided'}`);
-        }
-        
-        // Set progress to 100% on success
-        setUploadProgress(100);
-        
-        let responseData;
-        try {
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            responseData = await response.json();
-            console.log("Successful upload response:", responseData);
-          } else {
-            const text = await response.text();
-            console.log("Successful non-JSON response:", text);
-            responseData = { message: "Upload successful" };
-          }
-        } catch (parseError) {
-          console.warn("Could not parse response as JSON:", parseError);
-          responseData = { message: "Upload successful, but response could not be parsed" };
-        }
-        
-        toast.success("LinkedIn connections imported successfully!");
-        
-        // Small delay before completing to show the 100% progress
-        setTimeout(() => {
-          onComplete();
-        }, 1000);
-      } catch (fetchError) {
-        clearTimeout(timeoutId);
-        throw fetchError; // Re-throw to be handled by the outer catch
-      }
+      // Small delay before completing to show the 100% progress
+      setTimeout(() => {
+        onComplete();
+      }, 1000);
     } catch (error) {
       console.error("Upload error details:", error);
 
@@ -257,3 +194,4 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
 };
 
 export default LinkedInUpload;
+
