@@ -9,6 +9,9 @@ export interface ContactLookupResponse {
   id: string;
   phone?: string;
   fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
   success: boolean;
   message?: string;
 }
@@ -45,12 +48,15 @@ export const fetchContactByPhoneSecure = async (phone: string): Promise<ContactL
     
     if (contactData && contactData.id) {
       console.log("✅ Found contact with ID:", contactData.id);
-      toast.success(`Found your account! Contact ID: ${contactData.id}`);
+      toast.success(`Found your account! ${contactData.fullName ? `Hello, ${contactData.fullName}!` : ''}`);
       return {
         success: true,
         id: contactData.id,
         phone: contactData.phone,
-        fullName: contactData.fullName
+        fullName: contactData.fullName,
+        firstName: contactData.firstName,
+        lastName: contactData.lastName,
+        email: contactData.email
       };
     } else {
       console.log("❌ No contact found for phone number:", phone);
