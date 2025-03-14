@@ -130,7 +130,7 @@ const Success = () => {
                   Connect another calendar
                 </Button>
                 
-                <Button onClick={handleContinue} disabled={connecting} className="w-full bg-slate-50">
+                <Button onClick={handleContinue} disabled={connecting} className="w-full bg-slate-50 text-slate-950">
                   I'm good, let's move on
                   <ArrowRight className="ml-2" size={18} />
                 </Button>
