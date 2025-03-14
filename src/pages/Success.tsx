@@ -1,11 +1,13 @@
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Calendar, RefreshCw, ArrowLeft, ArrowRight } from "lucide-react";
+import { CheckCircle, Calendar, ArrowLeft, ArrowRight } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import LoadingSpinner from "@/components/LoadingSpinner";
+
 const Success = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ const Success = () => {
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInCard = useFadeIn("up", 300);
+
   useEffect(() => {
     // Get contactId from URL query params
     const params = new URLSearchParams(location.search);
@@ -26,7 +29,15 @@ const Success = () => {
       id,
       fromCronofy
     });
-    setContactId(id);
+    
+    // Use a mock ID for development if no ID is provided
+    if (!id && (window.location.hostname.includes('localhost') || 
+                window.location.hostname.includes('lovableproject.com'))) {
+      setContactId("mock-contact-dev");
+      console.log("Using mock contact ID for development");
+    } else {
+      setContactId(id);
+    }
 
     // Check if returning from Cronofy
     if (fromCronofy === "true") {
@@ -45,6 +56,7 @@ const Success = () => {
       currentUrl: window.location.href
     });
   }, [contactId, returningFromCronofy, connecting, connectionError]);
+
   const handleConnectCalendar = async () => {
     if (!contactId) {
       toast.error("Contact ID is missing. Please try again.");
@@ -52,15 +64,42 @@ const Success = () => {
     }
     setConnecting(true);
     setConnectionError(false);
+
     try {
-      // Direct API URL as provided
-      const cronofyUrl = `https://boardy-server-v36-production.up.railway.app/api/cronofy/auth/${contactId}?redirect=${encodeURIComponent(window.location.origin + "/success?fromCronofy=true&contactId=" + contactId)}`;
-      console.log("Attempting to connect to Cronofy:", cronofyUrl);
+      // Check if we're in development mode
+      const isDevelopment = window.location.hostname.includes('localhost') || 
+                           window.location.hostname.includes('lovableproject.com');
+      
+      if (isDevelopment) {
+        // For development, simulate connecting to Cronofy
+        console.log("DEV MODE: Simulating Cronofy connection for contact ID:", contactId);
+        toast.info("Development mode: Simulating calendar connection...");
+        
+        // Simulate a delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Simulate success with 80% probability, error with 20%
+        const simulateSuccess = Math.random() > 0.2;
+        
+        if (simulateSuccess) {
+          toast.success("DEV MODE: Calendar connected successfully!");
+          // Simulate returning from Cronofy by reloading with query params
+          window.location.href = window.location.origin + 
+            `/success?fromCronofy=true&contactId=${contactId}`;
+        } else {
+          // Simulate failure
+          throw new Error("Simulated connection failure");
+        }
+      } else {
+        // Production mode: use the real Cronofy endpoint
+        const cronofyUrl = `https://boardy-server-v36-production.up.railway.app/api/cronofy/auth/${contactId}?redirect=${encodeURIComponent(window.location.origin + "/success?fromCronofy=true&contactId=" + contactId)}`;
+        console.log("Attempting to connect to Cronofy:", cronofyUrl);
 
-      // Redirect the user to the Cronofy auth endpoint
-      window.location.href = cronofyUrl;
+        // Redirect the user to the Cronofy auth endpoint
+        window.location.href = cronofyUrl;
+      }
 
-      // Set a timeout to show error message if redirect doesn't happen within 5 seconds
+      // Set a timeout to show error message if redirect doesn't happen
       setTimeout(() => {
         setConnectionError(true);
         setConnecting(false);
@@ -72,14 +111,26 @@ const Success = () => {
       setConnecting(false);
     }
   };
+
   const handleContinue = () => {
     // Navigate to the next step in your onboarding flow
     toast.info("Continuing to the next step in onboarding");
-    navigate("/dashboard"); // Update this to your actual next page
+    
+    // Check if we're in development mode
+    if (window.location.hostname.includes('localhost') || 
+        window.location.hostname.includes('lovableproject.com')) {
+      // For dev mode, just show a toast instead of navigating to a non-existent route
+      toast.info("Development mode: In production, this would navigate to /dashboard");
+      navigate("/"); // Navigate back to home in dev mode
+    } else {
+      navigate("/dashboard"); // Update this to your actual next page
+    }
   };
+
   const handleReturnHome = () => {
     navigate("/");
   };
+
   return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50 rounded">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
@@ -93,7 +144,7 @@ const Success = () => {
             {returningFromCronofy ? "Calendar Connected" : "Account Verified"}
           </h1>
           <p className="text-lg text-gray-600">
-            {returningFromCronofy ? "Your calendar has been successfully connected" : "We've successfully connected your calendar"}
+            We've successfully connected your calendar
           </p>
         </div>
 
@@ -148,4 +199,5 @@ const Success = () => {
       </div>
     </div>;
 };
+
 export default Success;
