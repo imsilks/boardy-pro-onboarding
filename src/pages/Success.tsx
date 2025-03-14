@@ -25,7 +25,21 @@ const Success = () => {
     const id = params.get("contactId");
     const fromCronofy = params.get("fromCronofy");
     
-    setContactId(id);
+    if (id) {
+      console.log("Found contactId in URL:", id);
+      setContactId(id);
+      // Store contactId in sessionStorage to persist it
+      sessionStorage.setItem("boardyContactId", id);
+    } else {
+      // Try to get from sessionStorage if not in URL
+      const storedId = sessionStorage.getItem("boardyContactId");
+      if (storedId) {
+        console.log("Retrieved contactId from sessionStorage:", storedId);
+        setContactId(storedId);
+      } else {
+        console.warn("No contactId found in URL or sessionStorage");
+      }
+    }
     
     // Check if returning from Cronofy
     if (fromCronofy === "true") {
@@ -35,8 +49,11 @@ const Success = () => {
   }, [location]);
 
   const handleConnectCalendar = async () => {
-    if (!contactId) {
-      toast.error("Contact ID is missing. Please try again.");
+    // Use contactId from state, which is populated from URL or sessionStorage
+    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    
+    if (!idToUse) {
+      toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
     }
 
@@ -45,7 +62,7 @@ const Success = () => {
 
     try {
       // Direct API URL as provided
-      const cronofyUrl = `https://boardy-server-v36-production.up.railway.app/api/cronofy/auth/${contactId}?redirect=${encodeURIComponent(window.location.origin + "/success?fromCronofy=true&contactId=" + contactId)}`;
+      const cronofyUrl = `https://boardy-server-v36-production.up.railway.app/api/cronofy/auth/${idToUse}?redirect=${encodeURIComponent(window.location.origin + "/success?fromCronofy=true&contactId=" + idToUse)}`;
       console.log("Attempting to connect to Cronofy:", cronofyUrl);
       
       // Redirect the user to the Cronofy auth endpoint
