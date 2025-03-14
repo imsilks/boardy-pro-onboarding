@@ -91,9 +91,11 @@ export const fetchContactByPhone = async (phone: string): Promise<Contact | null
 // Get Cronofy auth URL - with validation and fallback
 export const getCronofyAuthUrl = (contactId: string): string => {
   try {
-    // Ensure contactId is appended to the end of the URL
-    const url = `${CRONOFY_BASE_URL}/${contactId}`;
-    console.log("Generated Cronofy URL:", url);
+    // Add redirect parameter to return to our app
+    const redirectUrl = encodeURIComponent(window.location.origin + "/success?fromCronofy=true&contactId=" + contactId);
+    const url = `${CRONOFY_BASE_URL}/${contactId}?redirect=${redirectUrl}`;
+    
+    console.log("Generated Cronofy URL with redirect:", url);
     return url;
   } catch (error) {
     console.error("Error generating Cronofy URL:", error);
