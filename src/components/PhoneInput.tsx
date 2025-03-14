@@ -44,9 +44,10 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isPhoneValid()) {
-      // Send the formatted phone to make matching easier
-      console.log("Submitting phone:", formatted);
-      onSubmit(formatted);
+      // Ensure the phone number is correctly formatted with + prefix
+      const submissionPhone = formatted.startsWith('+') ? formatted : `+${formatted.replace(/\D/g, '')}`;
+      console.log("Submitting phone:", submissionPhone);
+      onSubmit(submissionPhone);
     }
   };
 

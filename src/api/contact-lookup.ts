@@ -39,7 +39,7 @@ const mockContacts: ContactLookupResponse[] = [
 ];
 
 /**
- * Fetch contact by phone number using external API endpoint with fallback to mock data
+ * Fetch contact by phone number using external API endpoint
  */
 export const fetchContactByPhoneSecure = async (phone: string): Promise<ContactLookupResponse | null> => {
   try {
@@ -48,16 +48,23 @@ export const fetchContactByPhoneSecure = async (phone: string): Promise<ContactL
     // Provide user feedback
     toast.info(`Looking up account for ${phone}...`);
     
-    // Normalize phone number to remove non-digit characters
+    // Normalize phone number to remove non-digit characters for checking
     const normalizedPhone = phone.replace(/\D/g, '');
     
-    // Always use the real API, even in development
-    // Construct the API URL with the phone number
+    // Construct the API URL with the phone parameter
+    // Use the original phone format in the URL parameter as the server expects it
     const apiUrl = `https://boardy-server-v36-production.up.railway.app/contact?phone=${encodeURIComponent(phone)}`;
     console.log("🔗 Making API request to:", apiUrl);
     
-    // Make the API request
-    const response = await fetch(apiUrl);
+    // Make the API request with additional options to handle CORS
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      mode: 'cors'
+    });
     
     if (!response.ok) {
       console.error(`❌ API error: ${response.status} ${response.statusText}`);
@@ -75,7 +82,7 @@ export const fetchContactByPhoneSecure = async (phone: string): Promise<ContactL
       return {
         success: true,
         id: contactData.id,
-        phone: contactData.phone,
+        phone: contactData.phone || phone, // Use the provided phone if not returned
         fullName: contactData.fullName,
         firstName: contactData.firstName,
         lastName: contactData.lastName,
