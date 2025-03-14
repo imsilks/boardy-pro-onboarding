@@ -21,6 +21,7 @@ serve(async (req) => {
     const contactId = pathParts[pathParts.length - 1];
 
     if (!contactId) {
+      console.error("No contactId provided in URL");
       throw new Error('Contact ID is required');
     }
 
@@ -31,24 +32,37 @@ serve(async (req) => {
     const file = formData.get('file');
 
     if (!file || !(file instanceof File)) {
+      console.error("Missing or invalid file in request");
       throw new Error('File is required and must be a valid file');
     }
 
     console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size}bytes`);
+    
+    // Verify the file is a CSV
+    if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
+      console.error("File is not a CSV");
+      throw new Error('Please upload a CSV file');
+    }
 
     // Create a new FormData to forward to the external API
     const forwardFormData = new FormData();
     forwardFormData.append('file', file);
 
-    // Forward the request to the external API
+    // Forward the request to the external API with contactId in the URL
     const importUrl = `${LINKEDIN_IMPORT_BASE_URL}/${contactId}`;
     console.log(`Forwarding to: ${importUrl}`);
 
+    // Set up fetch with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+    
     const response = await fetch(importUrl, {
       method: 'POST',
       body: forwardFormData,
-      // Note: We do not manually set Content-Type for multipart/form-data
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
 
     // Get the response from the external API
     const responseStatus = response.status;
@@ -61,8 +75,9 @@ serve(async (req) => {
       console.log("Response body:", responseBody);
     } catch (e) {
       // If the response isn't JSON, get the text instead
-      responseBody = { message: await response.text() };
-      console.log("Response text:", responseBody.message);
+      const text = await response.text();
+      responseBody = { message: text || "No response body" };
+      console.log("Response text:", text);
     }
 
     return new Response(
@@ -77,8 +92,23 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Error processing LinkedIn import:", error);
+    
+    // Handle abort error (timeout)
+    if (error.name === 'AbortError') {
+      return new Response(
+        JSON.stringify({ error: "Request timed out. The server might be busy." }),
+        {
+          status: 504, // Gateway Timeout
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+    }
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || "Unknown error occurred" }),
       {
         status: 500,
         headers: {

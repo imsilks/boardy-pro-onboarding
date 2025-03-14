@@ -167,6 +167,11 @@ export const formatPhoneNumber = (phone: string): string => {
 // Upload LinkedIn connections CSV for a specific contact
 export const uploadLinkedInConnections = async (contactId: string, file: File): Promise<boolean> => {
   try {
+    if (!contactId) {
+      console.error("Contact ID is required for LinkedIn upload");
+      throw new Error("Contact ID is required for LinkedIn upload");
+    }
+    
     console.log(`Uploading LinkedIn connections for contact ID: ${contactId}`);
     console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size}bytes`);
     
@@ -180,21 +185,36 @@ export const uploadLinkedInConnections = async (contactId: string, file: File): 
       console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
     }
     
-    // Call our secure Supabase Edge Function instead of the external API directly
-    const { data, error } = await supabase.functions.invoke('linkedin-import/' + contactId, {
+    // Direct API endpoint with contactId appended
+    const apiUrl = `https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin/${contactId}`;
+    console.log(`Uploading to: ${apiUrl}`);
+    
+    // Set up fetch with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       body: formData,
+      signal: controller.signal
     });
     
-    if (error) {
-      console.error(`Upload failed:`, error);
-      throw new Error(`Edge function error: ${error.message || 'Unknown error'}`);
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Upload failed with status ${response.status}: ${errorText}`);
+      throw new Error(`Server responded with ${response.status}: ${errorText}`);
     }
     
+    const data = await response.json();
     console.log("Successful upload response:", data);
     return true;
   } catch (error) {
     console.error("Error uploading LinkedIn connections:", error);
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error("Upload request timed out. The server might be busy or there might be a network issue.");
+    }
     throw error;
   }
 };
