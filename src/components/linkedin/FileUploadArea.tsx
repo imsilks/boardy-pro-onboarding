@@ -17,13 +17,7 @@ const FileUploadArea: React.FC<FileUploadAreaProps> = ({ file, onFileSelect }) =
         return;
       }
       
-      // Verify the file size isn't too large (limit to 10MB)
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        toast.error("File is too large. Please upload a file smaller than 10MB");
-        return;
-      }
-      
-      // Create a new File object with the name "Connections.csv" as required by the API
+      // Create a new File object with the name "Connections.csv" as required
       const renamedFile = new File(
         [selectedFile], 
         "Connections.csv", 
@@ -31,7 +25,7 @@ const FileUploadArea: React.FC<FileUploadAreaProps> = ({ file, onFileSelect }) =
       );
       
       onFileSelect(renamedFile);
-      toast.success("File selected successfully");
+      toast.success("File selected and will be uploaded as Connections.csv");
     }
   };
 
@@ -42,7 +36,7 @@ const FileUploadArea: React.FC<FileUploadAreaProps> = ({ file, onFileSelect }) =
       <label htmlFor="file-upload" className="flex flex-col items-center justify-center cursor-pointer">
         <Upload size={40} className="text-gray-400 mb-2" />
         <span className="text-sm text-gray-500 mb-1">
-          {file ? file.name : "Click to select your LinkedIn connections CSV"}
+          {file ? file.name : "Click to select your CSV file"}
         </span>
         <span className="text-xs text-gray-400">
           Export from LinkedIn and upload here
@@ -50,7 +44,7 @@ const FileUploadArea: React.FC<FileUploadAreaProps> = ({ file, onFileSelect }) =
       </label>
       
       {file && <div className="mt-4 text-sm text-green-600 flex items-center justify-center">
-          <Check size={16} className="mr-1" /> File selected
+          <Check size={16} className="mr-1" /> File selected (will be uploaded as Connections.csv)
         </div>}
     </div>
   );

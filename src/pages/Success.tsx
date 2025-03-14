@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Calendar, ArrowLeft, CalendarPlus, ArrowRight } from "lucide-react";
+import { CheckCircle, Calendar, RefreshCw, ArrowLeft } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 
@@ -116,54 +116,59 @@ const Success = () => {
                 </p>
               </div>
               
-              {/* Always display the three buttons */}
               <div className="w-full space-y-3">
-                {connecting ? (
-                  // Show loading state when connecting
+                {returningFromCronofy ? (
+                  // Show this when returning from Cronofy
                   <Button 
-                    className="w-full" 
-                    disabled={true}
+                    className="w-full bg-green-600 hover:bg-green-700" 
+                    onClick={handleContinue}
                   >
-                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    Connecting...
+                    Continue Onboarding
                   </Button>
+                ) : connectionError ? (
+                  // Show this when there's a connection error
+                  <>
+                    <div className="px-4 py-3 mb-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
+                      <p>There was an issue connecting to the calendar service. Please try again.</p>
+                    </div>
+                    <Button 
+                      className="w-full" 
+                      onClick={handleConnectCalendar}
+                    >
+                      <RefreshCw className="mr-2" size={18} />
+                      Retry Calendar Connection
+                    </Button>
+                  </>
                 ) : (
-                  // Connect calendar button
+                  // Default connect calendar button
                   <Button 
                     className="w-full" 
                     onClick={handleConnectCalendar}
+                    disabled={connecting}
                   >
-                    <CalendarPlus className="mr-2" size={18} />
-                    Connect Another Calendar
+                    {connecting ? (
+                      <>
+                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="mr-2" size={18} />
+                        Connect Calendar
+                      </>
+                    )}
                   </Button>
                 )}
                 
-                {/* Continue button */}
-                <Button 
-                  className="w-full bg-green-600 hover:bg-green-700" 
-                  onClick={handleContinue}
-                >
-                  <ArrowRight className="mr-2" size={18} />
-                  I'm good, let's move on
-                </Button>
-                
-                {/* Return home button */}
                 <Button 
                   variant="outline" 
                   className="w-full"
                   onClick={handleReturnHome}
                 >
                   <ArrowLeft size={16} className="mr-2" />
-                  Back
+                  Return to Home
                 </Button>
               </div>
-              
-              {/* Show connection error if applicable */}
-              {connectionError && (
-                <div className="px-4 py-3 mt-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
-                  <p>There was an issue connecting to the calendar service. Please try again.</p>
-                </div>
-              )}
             </div>
           </GlassCard>
           
