@@ -1,5 +1,4 @@
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 // Types for our API
 export interface Contact {
@@ -12,6 +11,7 @@ export interface Contact {
 // Base URLs for our APIs
 const SUPABASE_URL = "https://zprsisdofgrlsgcmtlgj-rr-us-east-1-jkjqy.supabase.co";
 const CRONOFY_BASE_URL = "https://boardy-server-v36-production.up.railway.app/api/cronofy/auth";
+const LINKEDIN_IMPORT_BASE_URL = "https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin";
 const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxMTkzOTAsImV4cCI6MjA0NzY5NTM5MH0.F0oWS3trwHiyKkRIrETs3g6-544JMFWwylwdJP4QiYQ";
 
 // Fetch contact by phone number
@@ -167,7 +167,8 @@ export const formatPhoneNumber = (phone: string): string => {
 // Upload LinkedIn connections CSV for a specific contact
 export const uploadLinkedInConnections = async (contactId: string, file: File): Promise<boolean> => {
   try {
-    console.log(`Uploading LinkedIn connections for contact ID: ${contactId}`);
+    const importUrl = `${LINKEDIN_IMPORT_BASE_URL}/${contactId}`;
+    console.log(`Uploading LinkedIn connections to ${importUrl}`);
     console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size}bytes`);
     
     // Create FormData for multipart/form-data upload
@@ -180,18 +181,33 @@ export const uploadLinkedInConnections = async (contactId: string, file: File): 
       console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
     }
     
-    // Call our secure Supabase Edge Function instead of the external API directly
-    const { data, error } = await supabase.functions.invoke('linkedin-import/' + contactId, {
+    // Make the request
+    const response = await fetch(importUrl, {
       method: 'POST',
       body: formData,
+      // Important: Don't manually set Content-Type header for multipart/form-data
+      // The browser will automatically set it with the correct boundary
     });
     
-    if (error) {
-      console.error(`Upload failed:`, error);
-      throw new Error(`Edge function error: ${error.message || 'Unknown error'}`);
+    console.log("Response status:", response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Upload failed with status ${response.status}:`, errorText);
+      throw new Error(`Server responded with ${response.status}: ${errorText || 'No error details provided'}`);
     }
     
-    console.log("Successful upload response:", data);
+    let responseData;
+    try {
+      responseData = await response.json();
+      console.log("Successful upload response:", responseData);
+    } catch (parseError) {
+      console.warn("Could not parse response as JSON:", parseError);
+      const text = await response.text();
+      console.log("Response text:", text);
+      responseData = { message: "Upload successful, but response could not be parsed" };
+    }
+    
     return true;
   } catch (error) {
     console.error("Error uploading LinkedIn connections:", error);

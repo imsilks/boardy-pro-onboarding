@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { getCronofyAuthUrl, isUrlReachable, formatPhoneNumber } from "@/lib/api";
-import { fetchContactByPhoneSecure } from "@/api/contact-lookup";
+import { fetchContactByPhone, getCronofyAuthUrl, isUrlReachable } from "@/lib/api";
 import { useFadeIn } from "@/lib/animations";
 import HeaderSection from "@/components/HeaderSection";
 import PhoneFormSection from "@/components/PhoneFormSection";
@@ -29,20 +28,33 @@ const Index = () => {
     try {
       console.log("Submitted phone number:", phone);
       
-      // Use our secure backend API for contact lookup
-      const contactResult = await fetchContactByPhoneSecure(phone);
+      // Fetch contact ID from Supabase
+      const contactResult = await fetchContactByPhone(phone);
       if (!contactResult) {
         console.error("No contact found for phone:", phone);
+        toast.error("We couldn't find your account. Please check your phone number.");
         setLoading(false);
         return;
       }
 
       // Log the found contact info
       console.log("Found contact:", contactResult);
-      setContact({
-        id: contactResult.id,
-        fullName: contactResult.fullName
-      });
+      setContact(contactResult);
+
+      // Display contact details on success
+      const contactDetails = [
+        `Contact ID: ${contactResult.id}`,
+        contactResult.fullName ? `Name: ${contactResult.fullName}` : "Name: Not available",
+        `Phone: ${contactResult.phone || phone}`
+      ];
+      
+      toast.success(
+        "Account found!", 
+        { 
+          description: contactDetails.join('\n'),
+          duration: 5000
+        }
+      );
 
       // Show LinkedIn upload instead of redirecting immediately
       setLoading(false);
