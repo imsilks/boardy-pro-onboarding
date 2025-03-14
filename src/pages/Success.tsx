@@ -144,7 +144,17 @@ const Success = () => {
                   </div>
                 ) : null}
                 
-                {/* Always show these two buttons */}
+                {/* Button order changed: "Connect calendar" now comes first */}
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleConnectCalendar}
+                  disabled={connecting}
+                >
+                  <Calendar className="mr-2" size={18} />
+                  Connect {returningFromCronofy ? "another" : "your"} calendar
+                </Button>
+                
                 <Button 
                   className="w-full bg-green-600 hover:bg-green-700" 
                   onClick={handleContinue}
@@ -157,20 +167,10 @@ const Success = () => {
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={handleConnectCalendar}
-                  disabled={connecting}
-                >
-                  <Calendar className="mr-2" size={18} />
-                  Connect {returningFromCronofy ? "another" : "your"} calendar
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full"
                   onClick={handleReturnHome}
                 >
                   <ArrowLeft size={16} className="mr-2" />
-                  Return to Home
+                  Back
                 </Button>
               </div>
             </div>
