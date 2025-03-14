@@ -1,4 +1,3 @@
-
 // This is a client-side mock implementation of the API endpoint
 // In a production environment, this would be replaced by a real Next.js API endpoint
 
@@ -11,9 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlObj = new URL(url, window.location.origin);
     const phone = urlObj.searchParams.get('phone');
     
+    console.log("🔍 Mock API received phone lookup request for:", phone);
+    
     if (!phone) {
       return {
         status: 400,
+        ok: false,
         json: async () => ({ success: false, message: 'Phone number is required' })
       };
     }
@@ -28,16 +30,27 @@ document.addEventListener('DOMContentLoaded', () => {
       { id: 'contact_456', phone: '+14155551212', fullName: 'Jane Smith' }
     ];
     
-    // Normalize the phone number for comparison
-    const normalizedPhone = phone.replace(/\D/g, '');
+    // Normalize the phone number for comparison - just keep the digits
+    const normalizedInputPhone = phone.replace(/\D/g, '');
     
-    // Find a matching contact
+    console.log("🔄 Normalized input phone:", normalizedInputPhone);
+    
+    // Find a matching contact - log each attempt to debug
     const matchingContact = mockContacts.find(contact => {
       const contactPhone = contact.phone.replace(/\D/g, '');
-      return contactPhone.endsWith(normalizedPhone.slice(-10));
+      console.log(`Comparing: ${contactPhone} with ${normalizedInputPhone}`);
+      
+      // Check if the contactPhone ends with the normalized phone input
+      // This handles cases where the input might be missing the country code
+      const matches = contactPhone.endsWith(normalizedInputPhone) || 
+                     normalizedInputPhone.endsWith(contactPhone);
+                     
+      console.log(`Match result for ${contact.id}: ${matches}`);
+      return matches;
     });
     
     if (matchingContact) {
+      console.log("✅ Mock API found matching contact:", matchingContact);
       return {
         status: 200,
         ok: true,
@@ -50,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
     
+    console.log("❌ Mock API found no matching contact");
     return {
       status: 404,
       ok: false,
@@ -61,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const originalFetch = window.fetch;
   window.fetch = function(url, options) {
     if (typeof url === 'string' && url.includes('/api/contact-lookup')) {
+      console.log("🔄 Intercepting API call to:", url);
       return mockContactLookup(url);
     }
     
