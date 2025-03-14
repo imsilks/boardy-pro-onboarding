@@ -213,6 +213,12 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
     }
   };
 
+  // Handle skip functionality
+  const handleSkip = () => {
+    toast.info("Skipped LinkedIn connections import");
+    onComplete();
+  };
+
   return (
     <div className="w-full space-y-6" style={fadeInStyle}>
       <div className="text-center space-y-2">
@@ -238,6 +244,7 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
       <ActionButtons 
         onBack={onBack}
         onUpload={() => handleUpload(false)}
+        onSkip={handleSkip}
         isUploading={isUploading}
         isFileSelected={!!file}
         canSimulateSuccess={canSimulateSuccess}

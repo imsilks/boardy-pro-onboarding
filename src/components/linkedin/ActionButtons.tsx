@@ -1,11 +1,12 @@
 
 import React from "react";
-import { FileUp } from "lucide-react";
+import { FileUp, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ActionButtonsProps {
   onBack: () => void;
   onUpload: () => void;
+  onSkip: () => void;
   isUploading: boolean;
   isFileSelected: boolean;
   canSimulateSuccess: boolean;
@@ -14,7 +15,8 @@ interface ActionButtonsProps {
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({ 
   onBack, 
-  onUpload, 
+  onUpload,
+  onSkip,
   isUploading, 
   isFileSelected,
   canSimulateSuccess,
@@ -43,6 +45,19 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               Upload
             </>
           )}
+        </Button>
+      </div>
+      
+      <div className="flex justify-center">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={onSkip} 
+          className="text-blue-500 hover:text-blue-700"
+          disabled={isUploading}
+        >
+          Skip this step
+          <ArrowRight size={16} className="ml-1" />
         </Button>
       </div>
       
