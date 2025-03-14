@@ -131,65 +131,38 @@ const Success = () => {
               </div>
               
               <div className="w-full space-y-3">
-                {returningFromCronofy ? (
-                  // Show these buttons when returning from Cronofy after successful connection
-                  <>
-                    <Button 
-                      className="w-full bg-green-600 hover:bg-green-700" 
-                      onClick={handleContinue}
-                    >
-                      I'm good, let's move on
-                      <ArrowRight className="ml-2" size={18} />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={handleConnectCalendar}
-                    >
-                      <Calendar className="mr-2" size={18} />
-                      Connect another calendar
-                    </Button>
-                  </>
-                ) : connecting ? (
+                {connecting ? (
                   // Show loading state when connecting
                   <div className="text-center py-2">
                     <LoadingSpinner size="md" className="mx-auto mb-3" />
                     <p className="text-sm text-gray-600">Connecting to calendar service...</p>
                   </div>
                 ) : connectionError ? (
-                  // Show this when there's a connection error
-                  <>
-                    <div className="px-4 py-3 mb-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
-                      <p>There was an issue connecting to the calendar service. Please try again.</p>
-                    </div>
-                    <Button 
-                      className="w-full" 
-                      onClick={handleConnectCalendar}
-                    >
-                      <RefreshCw className="mr-2" size={18} />
-                      Retry Calendar Connection
-                    </Button>
-                  </>
-                ) : (
-                  // Default connect calendar button
-                  <Button 
-                    className="w-full" 
-                    onClick={handleConnectCalendar}
-                    disabled={connecting}
-                  >
-                    {connecting ? (
-                      <>
-                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                        Connecting...
-                      </>
-                    ) : (
-                      <>
-                        <Calendar className="mr-2" size={18} />
-                        Connect Calendar
-                      </>
-                    )}
-                  </Button>
-                )}
+                  // Show error state when there's a connection error
+                  <div className="px-4 py-3 mb-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
+                    <p>There was an issue connecting to the calendar service. Please try again.</p>
+                  </div>
+                ) : null}
+                
+                {/* Always show these two buttons */}
+                <Button 
+                  className="w-full bg-green-600 hover:bg-green-700" 
+                  onClick={handleContinue}
+                  disabled={connecting}
+                >
+                  I'm good, let's move on
+                  <ArrowRight className="ml-2" size={18} />
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleConnectCalendar}
+                  disabled={connecting}
+                >
+                  <Calendar className="mr-2" size={18} />
+                  Connect {returningFromCronofy ? "another" : "your"} calendar
+                </Button>
                 
                 <Button 
                   variant="outline" 
