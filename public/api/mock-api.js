@@ -1,10 +1,7 @@
 
-// NOTE: This mock API implementation has been disabled in favor of real database calls
-// It is kept here for reference but is no longer active
+// NOTE: This mock API implementation has been fully disabled
+// All phone number lookups now go through the external Railway API endpoint
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Mock API is disabled. Using real database calls instead.');
-  
-  // The mock API is now disabled and will not intercept any fetch calls
-  // All phone number lookups will go directly to the Supabase database
+  console.log('Mock API is disabled. Using external API endpoint for contact lookup.');
 });
