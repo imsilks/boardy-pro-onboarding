@@ -44,7 +44,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isPhoneValid()) {
-      // Just send the formatted phone to make matching easier
+      // Send the formatted phone to make matching easier
       console.log("Submitting phone:", formatted);
       onSubmit(formatted);
     }
