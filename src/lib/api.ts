@@ -180,20 +180,10 @@ export const uploadLinkedInConnections = async (contactId: string, file: File): 
       console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
     }
     
-    // In DEV mode, simulate success for testing
-    if (import.meta.env.DEV) {
-      console.log("🔧 DEV mode: Simulating successful upload");
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      return true;
-    }
-    
-    // Call our secure Edge Function instead of the external API directly
-    // The edge function will forward the request to the external API
-    const { data, error } = await supabase.functions.invoke(`linkedin-import/${contactId}`, {
+    // Call our secure Supabase Edge Function instead of the external API directly
+    const { data, error } = await supabase.functions.invoke('linkedin-import/' + contactId, {
       method: 'POST',
       body: formData,
-      // No need to set Content-Type header when sending FormData, it's set automatically
     });
     
     if (error) {
@@ -205,13 +195,6 @@ export const uploadLinkedInConnections = async (contactId: string, file: File): 
     return true;
   } catch (error) {
     console.error("Error uploading LinkedIn connections:", error);
-    
-    // For demonstration purposes in development, return success anyway
-    if (import.meta.env.DEV) {
-      console.log("🔧 DEV mode: Returning success despite error");
-      return true;
-    }
-    
     throw error;
   }
 };

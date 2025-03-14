@@ -3,21 +3,15 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const LINKEDIN_IMPORT_BASE_URL = "https://boardy-server-v36-production.up.railway.app/relationship/import/linkedin";
 
-// Define proper CORS headers to allow requests from any origin
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Max-Age': '86400',
 };
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      status: 204, 
-      headers: corsHeaders 
-    });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -42,17 +36,9 @@ serve(async (req) => {
 
     console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size}bytes`);
 
-    // Ensure the file is named "Connections.csv" as required by the endpoint
-    const fileContent = await file.arrayBuffer();
-    const renamedFile = new File(
-      [fileContent], 
-      "Connections.csv", 
-      { type: "text/csv" }
-    );
-
     // Create a new FormData to forward to the external API
     const forwardFormData = new FormData();
-    forwardFormData.append('file', renamedFile);
+    forwardFormData.append('file', file);
 
     // Forward the request to the external API
     const importUrl = `${LINKEDIN_IMPORT_BASE_URL}/${contactId}`;
@@ -61,8 +47,7 @@ serve(async (req) => {
     const response = await fetch(importUrl, {
       method: 'POST',
       body: forwardFormData,
-      // No need to set Content-Type header when sending FormData, the browser sets it automatically
-      // with the correct boundary parameter
+      // Note: We do not manually set Content-Type for multipart/form-data
     });
 
     // Get the response from the external API
