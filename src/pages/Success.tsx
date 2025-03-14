@@ -143,9 +143,7 @@ const Success = () => {
             </div>
           </GlassCard>
           
-          <p className="mt-6 text-center text-sm text-gray-500 animate-fade-in">
-            If you have any questions, please contact support@boardy.ai
-          </p>
+          <p className="mt-6 text-center text-sm text-gray-500 animate-fade-in">If you have any questions, please contact silka@boardy.ai</p>
         </div>
       </div>
     </div>;
