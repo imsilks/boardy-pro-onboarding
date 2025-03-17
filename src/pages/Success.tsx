@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -83,9 +82,9 @@ const Success = () => {
   };
 
   const handleContinue = () => {
-    // Navigate to the next step in your onboarding flow
-    toast.info("Continuing to the next step in onboarding");
-    navigate("/dashboard"); // Update this to your actual next page
+    // Navigate to the booking link page with contactId as query parameter
+    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    navigate(`/booking-link${idToUse ? `?contactId=${idToUse}` : ''}`);
   };
 
   const handleReturnHome = () => {
