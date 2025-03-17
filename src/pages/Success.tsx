@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Calendar, ArrowLeft, CalendarPlus, ArrowRight } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
+import { getCronofyAuthUrl } from "@/lib/api";
 
 const Success = () => {
   const location = useLocation();
@@ -15,12 +15,10 @@ const Success = () => {
   const [connectionError, setConnectionError] = useState(false);
   const [returningFromCronofy, setReturningFromCronofy] = useState(false);
   
-  // Animation states
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInCard = useFadeIn("up", 300);
 
   useEffect(() => {
-    // Get contactId from URL query params
     const params = new URLSearchParams(location.search);
     const id = params.get("contactId");
     const fromCronofy = params.get("fromCronofy");
@@ -28,11 +26,9 @@ const Success = () => {
     if (id) {
       console.log("Found contactId in URL:", id);
       setContactId(id);
-      // Store contactId in sessionStorage to persist it
       sessionStorage.setItem("boardyContactId", id);
       console.log("Stored/updated contactId in sessionStorage:", id);
     } else {
-      // Try to get from sessionStorage if not in URL
       const storedId = sessionStorage.getItem("boardyContactId");
       if (storedId) {
         console.log("Retrieved contactId from sessionStorage:", storedId);
@@ -43,7 +39,6 @@ const Success = () => {
       }
     }
     
-    // Check if returning from Cronofy
     if (fromCronofy === "true") {
       setReturningFromCronofy(true);
       toast.success("Calendar connected successfully! Welcome back.");
@@ -51,7 +46,6 @@ const Success = () => {
   }, [location]);
 
   const handleConnectCalendar = async () => {
-    // Use contactId from state, which is populated from URL or sessionStorage
     const idToUse = contactId || sessionStorage.getItem("boardyContactId");
     
     if (!idToUse) {
@@ -63,14 +57,11 @@ const Success = () => {
     setConnectionError(false);
 
     try {
-      // Direct API URL as provided
-      const cronofyUrl = `https://boardy-server-v36-production.up.railway.app/api/cronofy/auth/${idToUse}?redirect=${encodeURIComponent(window.location.origin + "/success?fromCronofy=true&contactId=" + idToUse)}`;
+      const cronofyUrl = getCronofyAuthUrl(idToUse);
       console.log("Attempting to connect to Cronofy:", cronofyUrl);
       
-      // Redirect the user to the Cronofy auth endpoint
       window.location.href = cronofyUrl;
       
-      // Set a timeout to show error message if redirect doesn't happen within 5 seconds
       setTimeout(() => {
         setConnectionError(true);
         setConnecting(false);
@@ -85,7 +76,6 @@ const Success = () => {
   };
 
   const handleContinue = () => {
-    // Get contactId from state or sessionStorage to ensure it persists
     const idToUse = contactId || sessionStorage.getItem("boardyContactId");
     navigate(`/booking-link${idToUse ? `?contactId=${idToUse}` : ''}`);
   };
@@ -99,7 +89,6 @@ const Success = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
       <div className="relative w-full max-w-md flex flex-col items-center z-10">
-        {/* Header section */}
         <div className="text-center mb-12" style={fadeInTitle}>
           <div className="inline-flex items-center justify-center p-2 mb-4">
             <img 
@@ -118,7 +107,6 @@ const Success = () => {
           </p>
         </div>
 
-        {/* Success card */}
         <div className="w-full" style={fadeInCard}>
           <GlassCard className="p-6 sm:p-8 w-full" intensity="heavy" blur="lg">
             <div className="py-6 flex flex-col items-center justify-center space-y-6">
@@ -135,10 +123,8 @@ const Success = () => {
                 </p>
               </div>
               
-              {/* Always display the three buttons */}
               <div className="w-full space-y-3">
                 {connecting ? (
-                  // Show loading state when connecting
                   <Button 
                     className="w-full" 
                     disabled={true}
@@ -147,7 +133,6 @@ const Success = () => {
                     Connecting...
                   </Button>
                 ) : (
-                  // Connect calendar button
                   <Button 
                     className="w-full" 
                     onClick={handleConnectCalendar}
@@ -157,7 +142,6 @@ const Success = () => {
                   </Button>
                 )}
                 
-                {/* Continue button */}
                 <Button 
                   className="w-full bg-green-600 hover:bg-green-700" 
                   onClick={handleContinue}
@@ -166,7 +150,6 @@ const Success = () => {
                   I'm good, let's move on
                 </Button>
                 
-                {/* Return home button */}
                 <Button 
                   variant="outline" 
                   className="w-full"
@@ -177,7 +160,6 @@ const Success = () => {
                 </Button>
               </div>
               
-              {/* Show connection error if applicable */}
               {connectionError && (
                 <div className="px-4 py-3 mt-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
                   <p>There was an issue connecting to the calendar service. Please try again.</p>
