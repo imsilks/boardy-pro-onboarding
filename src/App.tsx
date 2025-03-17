@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Success from "./pages/Success";
 import BookingLink from "./pages/BookingLink";
 import TeamConfirmation from "./pages/TeamConfirmation";
+import OnboardingComplete from "./pages/OnboardingComplete";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/success" element={<Success />} />
           <Route path="/booking-link" element={<BookingLink />} />
           <Route path="/join-team" element={<TeamConfirmation />} />
+          <Route path="/onboarding-complete" element={<OnboardingComplete />} />
           <Route path="/dashboard" element={<NotFound />} /> {/* Placeholder for dashboard */}
           <Route path="*" element={<NotFound />} />
         </Routes>

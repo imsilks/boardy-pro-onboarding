@@ -100,16 +100,16 @@ const TeamConfirmation = () => {
     
     setJoining(true);
     try {
-      // Here we'd save the team membership to the database
+      // Here we would use the API endpoint to map TeamId to ContactId
       console.log(`Joining team: ${team.name} (${team.id}) for contact: ${idToUse}`);
 
-      // Simulate API call to join the team
+      // Placeholder for the API call - will be replaced with actual implementation
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast.success(`You've joined ${team.name}!`);
 
-      // Navigate to dashboard
+      // Navigate to onboarding complete page
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate(`/onboarding-complete?contactId=${idToUse}`);
       }, 500);
     } catch (error) {
       console.error("Error joining team:", error);
@@ -120,8 +120,9 @@ const TeamConfirmation = () => {
   };
 
   const handleSkip = () => {
+    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
     toast.info("Skipped joining a team");
-    navigate("/dashboard");
+    navigate(`/onboarding-complete${idToUse ? `?contactId=${idToUse}` : ''}`);
   };
 
   const handleBack = () => {
@@ -198,8 +199,8 @@ const TeamConfirmation = () => {
                 </div>
                 
                 <div className="pt-4 w-full space-y-3">
-                  <Button variant="outline" className="w-full" onClick={() => navigate("/dashboard")}>
-                    Continue to Dashboard
+                  <Button variant="outline" className="w-full" onClick={handleSkip}>
+                    Skip this step
                   </Button>
                   
                   <Button variant="ghost" className="w-full" onClick={handleBack}>
