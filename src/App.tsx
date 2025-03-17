@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Success from "./pages/Success";
 import BookingLink from "./pages/BookingLink";
+import TeamConfirmation from "./pages/TeamConfirmation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/success" element={<Success />} />
           <Route path="/booking-link" element={<BookingLink />} />
+          <Route path="/team-confirmation" element={<TeamConfirmation />} />
           <Route path="/dashboard" element={<NotFound />} /> {/* Placeholder for dashboard */}
           <Route path="*" element={<NotFound />} />
         </Routes>

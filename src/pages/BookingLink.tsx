@@ -29,6 +29,8 @@ const BookingLink = () => {
     if (id) {
       console.log("Found contactId in URL:", id);
       setContactId(id);
+      // Store in sessionStorage for subsequent pages
+      sessionStorage.setItem("boardyContactId", id);
     } else {
       // Try to get from sessionStorage if not in URL
       const storedId = sessionStorage.getItem("boardyContactId");
@@ -42,40 +44,40 @@ const BookingLink = () => {
     }
   }, [location]);
 
-  const handleSaveBookingLink = async () => {
+  const handleSubmitBookingLink = async () => {
     if (!contactId) {
       toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
     }
 
-    if (!bookingLink) {
-      toast.error("Please enter a booking link");
-      return;
-    }
-
-    // Validate URL format
-    try {
-      new URL(bookingLink);
-    } catch (e) {
-      toast.error("Please enter a valid URL");
-      return;
+    if (bookingLink) {
+      // Validate URL format if there's a value
+      try {
+        new URL(bookingLink);
+      } catch (e) {
+        toast.error("Please enter a valid URL");
+        return;
+      }
     }
 
     setSaving(true);
 
     try {
-      // Here we'd save the booking link to the database
-      // For now, we'll just log it and proceed
-      console.log(`Saving booking link: ${bookingLink} for contact: ${contactId}`);
+      if (bookingLink) {
+        // Here we'd save the booking link to the database
+        console.log(`Saving booking link: ${bookingLink} for contact: ${contactId}`);
+        
+        // Simulate API call to save the booking link
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        toast.success("Booking link saved successfully!");
+      } else {
+        console.log("No booking link provided, skipping save operation");
+      }
       
-      // Simulate API call to save the booking link
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success("Booking link saved successfully!");
-      
-      // Navigate to dashboard or next step
+      // Navigate to team confirmation page
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate(`/team-confirmation?contactId=${contactId}`);
       }, 500);
     } catch (error) {
       console.error("Error saving booking link:", error);
@@ -87,7 +89,12 @@ const BookingLink = () => {
 
   const handleSkip = () => {
     toast.info("Skipped adding a booking link");
-    navigate("/dashboard");
+    
+    if (contactId) {
+      navigate(`/team-confirmation?contactId=${contactId}`);
+    } else {
+      navigate("/team-confirmation");
+    }
   };
 
   const handleBack = () => {
@@ -154,10 +161,10 @@ const BookingLink = () => {
                   ) : (
                     <Button 
                       className="w-full" 
-                      onClick={handleSaveBookingLink}
+                      onClick={handleSubmitBookingLink}
                     >
                       <CalendarCheck size={18} className="mr-2" />
-                      Save Booking Link
+                      Submit
                     </Button>
                   )}
                   
