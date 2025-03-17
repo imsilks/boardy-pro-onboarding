@@ -47,10 +47,16 @@ const Success = () => {
   }, [location]);
 
   const handleConnectCalendar = async () => {
-    // Get contactId from state first, then from sessionStorage as backup
-    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    // First try to get contactId from state, then from sessionStorage
+    let idToUse = contactId;
     
     if (!idToUse) {
+      idToUse = sessionStorage.getItem("boardyContactId");
+      console.log("Retrieved contactId from sessionStorage for calendar connection:", idToUse);
+    }
+    
+    if (!idToUse) {
+      console.error("No contactId available for calendar connection");
       toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
     }
@@ -59,10 +65,15 @@ const Success = () => {
     setConnectionError(false);
 
     try {
-      const cronofyUrl = getCronofyAuthUrl(idToUse);
       console.log("Attempting to connect to Cronofy with contactId:", idToUse);
+      const cronofyUrl = getCronofyAuthUrl(idToUse);
       
-      window.location.href = cronofyUrl;
+      if (cronofyUrl) {
+        console.log("Redirecting to Cronofy URL:", cronofyUrl);
+        window.location.href = cronofyUrl;
+      } else {
+        throw new Error("Failed to generate Cronofy URL");
+      }
       
       // Set a timeout to show an error if redirect doesn't happen
       setTimeout(() => {

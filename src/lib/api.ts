@@ -131,7 +131,7 @@ export const formatPhoneNumber = (phone: string): string => {
 // Get Cronofy auth URL - with validation and fallback
 export const getCronofyAuthUrl = (contactId: string): string => {
   try {
-    if (!contactId) {
+    if (!contactId || contactId.trim() === "") {
       console.error("getCronofyAuthUrl called with empty contactId");
       throw new Error("Contact ID is required for calendar connection");
     }
@@ -147,6 +147,7 @@ export const getCronofyAuthUrl = (contactId: string): string => {
   } catch (error) {
     console.error("Error generating Cronofy URL:", error);
     // Return a fallback URL if there's an error
+    toast.error("Unable to generate calendar connection URL. Please try again.");
     return `/success?contactId=${contactId}`;
   }
 };
