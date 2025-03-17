@@ -88,42 +88,6 @@ export const fetchContactByPhone = async (phone: string): Promise<Contact | null
   }
 };
 
-// Get Cronofy auth URL - with validation and fallback
-export const getCronofyAuthUrl = (contactId: string): string => {
-  try {
-    // Add redirect parameter to return to our app
-    const redirectUrl = encodeURIComponent(window.location.origin + "/success?fromCronofy=true&contactId=" + contactId);
-    const url = `${CRONOFY_BASE_URL}/${contactId}?redirect=${redirectUrl}`;
-    
-    console.log("Generated Cronofy URL with redirect:", url);
-    return url;
-  } catch (error) {
-    console.error("Error generating Cronofy URL:", error);
-    // Return a fallback URL if there's an error
-    return `/success?contactId=${contactId}`;
-  }
-};
-
-// Check if URL is reachable
-export const isUrlReachable = async (url: string): Promise<boolean> => {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-    
-    const response = await fetch(url, { 
-      method: 'HEAD',
-      mode: 'no-cors', // This is important for CORS issues
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    return true;
-  } catch (error) {
-    console.error(`URL ${url} is not reachable:`, error);
-    return false;
-  }
-};
-
 // Format phone number to international format with "+" followed by country code and number
 export const formatPhoneNumber = (phone: string): string => {
   // Remove all non-digit characters
@@ -162,6 +126,49 @@ export const formatPhoneNumber = (phone: string): string => {
   
   // If all else fails, return the original input with a plus
   return `+${digitsOnly}`;
+};
+
+// Get Cronofy auth URL - with validation and fallback
+export const getCronofyAuthUrl = (contactId: string): string => {
+  try {
+    if (!contactId) {
+      console.error("getCronofyAuthUrl called with empty contactId");
+      throw new Error("Contact ID is required for calendar connection");
+    }
+    
+    console.log("Creating Cronofy URL with contactId:", contactId);
+    
+    // Add redirect parameter to return to our app
+    const redirectUrl = encodeURIComponent(window.location.origin + "/success?fromCronofy=true&contactId=" + contactId);
+    const url = `${CRONOFY_BASE_URL}/${contactId}?redirect=${redirectUrl}`;
+    
+    console.log("Generated Cronofy URL with redirect:", url);
+    return url;
+  } catch (error) {
+    console.error("Error generating Cronofy URL:", error);
+    // Return a fallback URL if there's an error
+    return `/success?contactId=${contactId}`;
+  }
+};
+
+// Check if URL is reachable
+export const isUrlReachable = async (url: string): Promise<boolean> => {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
+    const response = await fetch(url, { 
+      method: 'HEAD',
+      mode: 'no-cors', // This is important for CORS issues
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    return true;
+  } catch (error) {
+    console.error(`URL ${url} is not reachable:`, error);
+    return false;
+  }
 };
 
 // Upload LinkedIn connections CSV for a specific contact

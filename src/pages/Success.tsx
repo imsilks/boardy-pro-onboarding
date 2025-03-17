@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -46,6 +47,7 @@ const Success = () => {
   }, [location]);
 
   const handleConnectCalendar = async () => {
+    // Get contactId from state first, then from sessionStorage as backup
     const idToUse = contactId || sessionStorage.getItem("boardyContactId");
     
     if (!idToUse) {
@@ -58,10 +60,11 @@ const Success = () => {
 
     try {
       const cronofyUrl = getCronofyAuthUrl(idToUse);
-      console.log("Attempting to connect to Cronofy:", cronofyUrl);
+      console.log("Attempting to connect to Cronofy with contactId:", idToUse);
       
       window.location.href = cronofyUrl;
       
+      // Set a timeout to show an error if redirect doesn't happen
       setTimeout(() => {
         setConnectionError(true);
         setConnecting(false);
