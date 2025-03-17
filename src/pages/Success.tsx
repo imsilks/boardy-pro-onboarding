@@ -102,7 +102,7 @@ const Success = () => {
           </h1>
           <p className="text-lg text-gray-600">
             {returningFromCronofy 
-              ? "Your calendar has been successfully connected" 
+              ? "Your calendar has been successfully linked to Boardy" 
               : "Your phone number has been verified"}
           </p>
         </div>
@@ -114,10 +114,12 @@ const Success = () => {
                 <CheckCircle size={64} className="mx-auto" />
               </div>
               <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">Thank You!</h2>
+                <h2 className="text-xl font-semibold mb-2">
+                  {returningFromCronofy ? "Calendar Integration Complete!" : "Thank You!"}
+                </h2>
                 <p className="text-gray-600 mb-6">
                   {returningFromCronofy 
-                    ? "We've successfully connected your calendar."
+                    ? "We can now access your calendar to schedule meetings and avoid conflicts."
                     : "We've successfully verified your account."}
                   {contactId && <span className="text-xs block mt-2 text-gray-400">ID: {contactId}</span>}
                 </p>
