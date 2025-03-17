@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -34,9 +35,13 @@ const TeamConfirmation = () => {
     // Get contactId from URL query params or session storage
     const params = new URLSearchParams(location.search);
     const id = params.get("contactId");
+    
     if (id) {
       console.log("Found contactId in URL:", id);
       setContactId(id);
+      // Store in sessionStorage for subsequent pages
+      sessionStorage.setItem("boardyContactId", id);
+      console.log("Stored/updated contactId in sessionStorage:", id);
       fetchTeamData(id);
     } else {
       // Try to get from sessionStorage if not in URL
@@ -85,14 +90,18 @@ const TeamConfirmation = () => {
   };
 
   const handleJoinTeam = async () => {
-    if (!contactId || !team) {
+    // Ensure we always try to get the latest contactId from sessionStorage as fallback
+    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    
+    if (!idToUse || !team) {
       toast.error("Missing contact or team information");
       return;
     }
+    
     setJoining(true);
     try {
       // Here we'd save the team membership to the database
-      console.log(`Joining team: ${team.name} (${team.id}) for contact: ${contactId}`);
+      console.log(`Joining team: ${team.name} (${team.id}) for contact: ${idToUse}`);
 
       // Simulate API call to join the team
       await new Promise(resolve => setTimeout(resolve, 1000));

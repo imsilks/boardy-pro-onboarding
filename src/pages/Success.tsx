@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -29,6 +30,7 @@ const Success = () => {
       setContactId(id);
       // Store contactId in sessionStorage to persist it
       sessionStorage.setItem("boardyContactId", id);
+      console.log("Stored/updated contactId in sessionStorage:", id);
     } else {
       // Try to get from sessionStorage if not in URL
       const storedId = sessionStorage.getItem("boardyContactId");
@@ -37,6 +39,7 @@ const Success = () => {
         setContactId(storedId);
       } else {
         console.warn("No contactId found in URL or sessionStorage");
+        toast.error("Contact information is missing");
       }
     }
     
@@ -82,7 +85,7 @@ const Success = () => {
   };
 
   const handleContinue = () => {
-    // Navigate to the booking link page with contactId as query parameter
+    // Get contactId from state or sessionStorage to ensure it persists
     const idToUse = contactId || sessionStorage.getItem("boardyContactId");
     navigate(`/booking-link${idToUse ? `?contactId=${idToUse}` : ''}`);
   };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -30,6 +31,7 @@ const BookingLink = () => {
       setContactId(id);
       // Store in sessionStorage for subsequent pages
       sessionStorage.setItem("boardyContactId", id);
+      console.log("Stored/updated contactId in sessionStorage:", id);
     } else {
       // Try to get from sessionStorage if not in URL
       const storedId = sessionStorage.getItem("boardyContactId");
@@ -44,7 +46,10 @@ const BookingLink = () => {
   }, [location]);
 
   const handleSubmitBookingLink = async () => {
-    if (!contactId) {
+    // Ensure we always try to get the latest contactId from sessionStorage as fallback
+    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    
+    if (!idToUse) {
       toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
     }
@@ -64,7 +69,7 @@ const BookingLink = () => {
     try {
       if (bookingLink) {
         // Here we'd save the booking link to the database
-        console.log(`Saving booking link: ${bookingLink} for contact: ${contactId}`);
+        console.log(`Saving booking link: ${bookingLink} for contact: ${idToUse}`);
         
         // Simulate API call to save the booking link
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -74,9 +79,9 @@ const BookingLink = () => {
         console.log("No booking link provided, skipping save operation");
       }
       
-      // Navigate to join team page
+      // Navigate to join team page with contactId
       setTimeout(() => {
-        navigate(`/join-team?contactId=${contactId}`);
+        navigate(`/join-team?contactId=${idToUse}`);
       }, 500);
     } catch (error) {
       console.error("Error saving booking link:", error);
@@ -89,8 +94,11 @@ const BookingLink = () => {
   const handleSkip = () => {
     toast.info("Skipped adding a booking link");
     
-    if (contactId) {
-      navigate(`/join-team?contactId=${contactId}`);
+    // Ensure we always try to get the latest contactId from sessionStorage as fallback
+    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    
+    if (idToUse) {
+      navigate(`/join-team?contactId=${idToUse}`);
     } else {
       navigate("/join-team");
     }

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { getCronofyAuthUrl, isUrlReachable, formatPhoneNumber } from "@/lib/api";
@@ -43,6 +44,10 @@ const Index = () => {
         id: contactResult.id,
         fullName: contactResult.fullName
       });
+
+      // Store contactId in sessionStorage immediately after fetching
+      sessionStorage.setItem("boardyContactId", contactResult.id);
+      console.log("Stored contactId in sessionStorage:", contactResult.id);
 
       // Show LinkedIn upload instead of redirecting immediately
       setLoading(false);

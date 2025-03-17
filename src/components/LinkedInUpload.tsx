@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { useFadeIn } from "@/lib/animations";
-import { toast } from "sonner";
-import { uploadLinkedInConnections } from "@/lib/api";
 
-// Import our components
+import React, { useState } from "react";
+import { ArrowLeft, Upload, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import FileUploadArea from "./linkedin/FileUploadArea";
 import UploadProgress from "./linkedin/UploadProgress";
 import UploadError from "./linkedin/UploadError";
 import ActionButtons from "./linkedin/ActionButtons";
 import HelpText from "./linkedin/HelpText";
+import { uploadLinkedInConnections } from "@/lib/api";
+import { toast } from "sonner";
 
 interface LinkedInUploadProps {
   contactId: string;
@@ -16,182 +17,148 @@ interface LinkedInUploadProps {
   onBack: () => void;
 }
 
-const LinkedInUpload: React.FC<LinkedInUploadProps> = ({
-  contactId,
-  onComplete,
-  onBack
-}) => {
+const LinkedInUpload: React.FC<LinkedInUploadProps> = ({ contactId, onComplete, onBack }) => {
   const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [retryCount, setRetryCount] = useState(0);
-  const [canSimulateSuccess, setCanSimulateSuccess] = useState(false);
-  const fadeInStyle = useFadeIn("up", 100);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // Check if in development mode for simulation option
-  useEffect(() => {
-    setCanSimulateSuccess(import.meta.env.DEV || false);
-    
-    // Reset progress animation when not uploading
-    if (!isUploading) {
+  const handleFileSelected = (selectedFile: File | null) => {
+    if (selectedFile) {
+      // Reset states on new file selection
+      setFile(selectedFile);
       setUploadProgress(0);
+      setUploadSuccess(false);
+      setUploadError(null);
+      console.log("LinkedIn file selected:", selectedFile.name);
     }
-  }, [isUploading]);
-
-  // Progress animation during upload
-  useEffect(() => {
-    let interval: number | null = null;
-    
-    if (isUploading && uploadProgress < 95) {
-      interval = window.setInterval(() => {
-        setUploadProgress(prev => {
-          const increment = prev < 30 ? 5 : prev < 70 ? 2 : 0.5;
-          return Math.min(prev + increment, 95);
-        });
-      }, 300);
-    }
-    
-    return () => {
-      if (interval !== null) window.clearInterval(interval);
-    };
-  }, [isUploading, uploadProgress]);
-
-  const handleFileSelect = (selectedFile: File) => {
-    setFile(selectedFile);
-    setUploadError(null);
   };
 
-  const handleUpload = async (useRetry = false) => {
+  const handleUpload = async () => {
     if (!file) {
       toast.error("Please select a file first");
       return;
     }
-    
-    setIsUploading(true);
-    setUploadError(null);
-    setUploadProgress(0);
-    
-    if (useRetry) {
-      setRetryCount(prev => prev + 1);
-      toast.info(`Retry attempt ${retryCount + 1}...`);
-    } else {
-      toast.info("Uploading your LinkedIn connections...");
+
+    if (!contactId) {
+      // Try to get from sessionStorage if not in props
+      const storedId = sessionStorage.getItem("boardyContactId");
+      if (!storedId) {
+        toast.error("Contact ID is missing");
+        return;
+      }
+      contactId = storedId;
     }
+
+    setUploading(true);
+    setUploadError(null);
+    
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        const next = prev + Math.random() * 20;
+        return next > 90 ? 90 : next; // Cap at 90% until complete
+      });
+    }, 500);
     
     try {
-      // Use the new API function for uploading
       await uploadLinkedInConnections(contactId, file);
-      
-      // Set progress to 100% on success
+      clearInterval(progressInterval);
       setUploadProgress(100);
+      setUploadSuccess(true);
       toast.success("LinkedIn connections imported successfully!");
       
-      // Small delay before completing to show the 100% progress
-      setTimeout(() => {
-        onComplete();
-      }, 1000);
+      // Store the contactId in sessionStorage again for redundancy
+      sessionStorage.setItem("boardyContactId", contactId);
+      
+      // Wait a moment before completing
+      setTimeout(onComplete, 1000);
     } catch (error) {
-      console.error("Upload error details:", error);
-
-      let errorMessage = "Failed to upload connections";
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        errorMessage = "Network error: The server may be down, unreachable, or blocking cross-origin requests (CORS issue)";
-      } else if (error instanceof DOMException && error.name === 'AbortError') {
-        errorMessage = "The request timed out. The server might be busy.";
-      } else if (error instanceof Error) {
-        errorMessage = error.message || "Unknown error occurred";
-      }
-      
-      setUploadError(errorMessage);
-      
-      toast.error(
-        <div>
-          <p>There was an error uploading your file.</p>
-          <ul className="list-disc pl-4 mt-1">
-            <li>Check your internet connection</li>
-            <li>This might be a CORS issue - the server may not allow uploads from this domain</li>
-            <li>The API server might be down for maintenance</li>
-            <li>If in development, please use the "Simulate Success" option</li>
-          </ul>
-        </div>, 
-        { duration: 8000 }
-      );
+      clearInterval(progressInterval);
+      console.error("Error uploading LinkedIn connections:", error);
+      setUploadError(error instanceof Error ? error.message : "Unknown error occurred");
+      toast.error("Failed to upload LinkedIn connections");
     } finally {
-      setIsUploading(false);
-    }
-  };
-  
-  const handleRetry = () => {
-    handleUpload(true);
-  };
-  
-  // For development, providing a fallback option to bypass the upload
-  const handleSimulateSuccess = () => {
-    if (canSimulateSuccess) {
-      setIsUploading(true);
-      setUploadProgress(0);
-      
-      // Simulate the upload with a progress animation
-      const interval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-              toast.success("Simulated successful upload (DEV MODE)");
-              setIsUploading(false);
-              onComplete();
-            }, 500);
-            return 100;
-          }
-          return prev + 5;
-        });
-      }, 100);
+      setUploading(false);
     }
   };
 
-  // Handle skip functionality
   const handleSkip = () => {
-    toast.info("Skipped LinkedIn connections import");
+    toast.info("Skipped LinkedIn import");
     onComplete();
   };
 
   return (
-    <div className="w-full space-y-6" style={fadeInStyle}>
-      <div className="text-center space-y-2">
-        <h3 className="text-xl font-semibold text-gray-800">Import Your LinkedIn Connections</h3>
-        <p className="text-gray-600">Upload your LinkedIn connections CSV</p>
+    <div className="py-6 flex flex-col items-center justify-center space-y-6">
+      <div className="text-blue-500 mb-2">
+        <Upload size={48} className="mx-auto" />
       </div>
       
-      <FileUploadArea 
-        file={file} 
-        onFileSelect={handleFileSelect} 
-      />
-      
-      <UploadProgress 
-        isUploading={isUploading} 
-        progress={uploadProgress} 
-      />
-      
-      <UploadError 
-        error={uploadError} 
-        onRetry={handleRetry} 
-      />
-      
-      <ActionButtons 
-        onBack={onBack}
-        onUpload={() => handleUpload(false)}
-        onSkip={handleSkip}
-        isUploading={isUploading}
-        isFileSelected={!!file}
-        canSimulateSuccess={canSimulateSuccess}
-        onSimulateSuccess={handleSimulateSuccess}
-      />
-      
-      <HelpText />
+      {uploadSuccess ? (
+        <div className="text-center space-y-4">
+          <div className="text-green-500">
+            <CheckCircle size={48} className="mx-auto" />
+          </div>
+          <h3 className="text-xl font-medium">Import Successful!</h3>
+          <p className="text-gray-600">
+            Your LinkedIn connections have been imported successfully.
+          </p>
+          <Button 
+            className="mt-4" 
+            onClick={onComplete}
+          >
+            Continue
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-2 text-center">
+            <h3 className="text-xl font-medium">Import LinkedIn Connections</h3>
+            <p className="text-gray-600">
+              Upload your LinkedIn connections to enhance your network
+            </p>
+          </div>
+          
+          {!uploading && !file && (
+            <FileUploadArea onFileSelected={handleFileSelected} />
+          )}
+          
+          {file && !uploadError && (
+            <div className="w-full space-y-2">
+              <Label>Selected File</Label>
+              <div className="p-2 border rounded-md bg-blue-50 text-blue-700 text-sm flex items-center">
+                <Upload size={16} className="mr-2" />
+                {file.name}
+              </div>
+            </div>
+          )}
+          
+          {uploading && (
+            <UploadProgress progress={uploadProgress} />
+          )}
+          
+          {uploadError && (
+            <UploadError 
+              error={uploadError} 
+              onRetry={() => handleUpload()} 
+              onSelectNewFile={() => setFile(null)}
+            />
+          )}
+          
+          <HelpText />
+          
+          <ActionButtons 
+            file={file}
+            uploading={uploading}
+            onUpload={handleUpload}
+            onSkip={handleSkip}
+            onBack={onBack}
+          />
+        </>
+      )}
     </div>
   );
 };
 
 export default LinkedInUpload;
-
