@@ -148,7 +148,7 @@ const TeamConfirmation = () => {
             Join Your Team
           </h1>
           <p className="text-lg text-gray-600">
-            Connect with your colleagues and collaborate
+            Connect with your colleagues and leverage your shared network
           </p>
         </div>
 
@@ -174,7 +174,7 @@ const TeamConfirmation = () => {
                     )}
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-4">
                       <p className="text-blue-800">
-                        You've been invited to join this team. Would you like to accept?
+                        Do you want to join {team.name} team? This will allow you to share your network with your team and to get access to your team's network too.
                       </p>
                     </div>
                   </div>
@@ -251,7 +251,7 @@ const TeamConfirmation = () => {
           </GlassCard>
           
           <p className="mt-6 text-center text-sm text-gray-500 animate-fade-in">
-            Joining a team will allow you to collaborate with others
+            Joining a team will allow you to share networks and collaborate effectively
           </p>
         </div>
       </div>
