@@ -14,7 +14,6 @@ const Success = () => {
   const [contactId, setContactId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
-  const [returningFromCronofy, setReturningFromCronofy] = useState(false);
   
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInCard = useFadeIn("up", 300);
@@ -41,7 +40,6 @@ const Success = () => {
     }
     
     if (fromCronofy === "true") {
-      setReturningFromCronofy(true);
       toast.success("Calendar connected successfully! Welcome back.");
     }
   }, [location]);
@@ -110,12 +108,10 @@ const Success = () => {
             />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-3">
-            {returningFromCronofy ? "Calendar Connected" : "Account Verified"}
+            Calendar Connected
           </h1>
           <p className="text-lg text-gray-600">
-            {returningFromCronofy 
-              ? "Your calendar has been successfully linked to Boardy" 
-              : "Your phone number has been verified"}
+            Your calendar has been successfully linked to Boardy
           </p>
         </div>
 
@@ -123,20 +119,14 @@ const Success = () => {
           <GlassCard className="p-6 sm:p-8 w-full" intensity="heavy" blur="lg">
             <div className="py-6 flex flex-col items-center justify-center space-y-6">
               <div className="text-green-500 mb-2">
-                {returningFromCronofy ? (
-                  <Calendar size={64} className="mx-auto" />
-                ) : (
-                  <CheckCircle size={64} className="mx-auto" />
-                )}
+                <Calendar size={64} className="mx-auto" />
               </div>
               <div className="text-center">
                 <h2 className="text-xl font-semibold mb-2">
-                  {returningFromCronofy ? "Calendar Integration Complete!" : "Thank You!"}
+                  Calendar Integration Complete!
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  {returningFromCronofy 
-                    ? "We can now access your calendar to schedule meetings and avoid conflicts."
-                    : "We've successfully verified your account."}
+                  We can now access your calendar to schedule meetings and avoid conflicts.
                   {contactId && <span className="text-xs block mt-2 text-gray-400">ID: {contactId}</span>}
                 </p>
               </div>
@@ -156,7 +146,7 @@ const Success = () => {
                     onClick={handleConnectCalendar}
                   >
                     <CalendarPlus className="mr-2" size={18} />
-                    {returningFromCronofy ? "Connect Another Calendar" : "Connect Your Calendar"}
+                    Connect Another Calendar
                   </Button>
                 )}
                 
@@ -165,7 +155,7 @@ const Success = () => {
                   onClick={handleContinue}
                 >
                   <ArrowRight className="mr-2" size={18} />
-                  {returningFromCronofy ? "Continue to Booking Link" : "I'm good, let's move on"}
+                  I'm good, let's move on
                 </Button>
                 
                 <Button 
