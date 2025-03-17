@@ -11,11 +11,13 @@ import { supabase } from "@/integrations/supabase/client";
 // API endpoint for fetching team information
 const TEAM_API_ENDPOINT = "https://zprsisdofgrlsgcmtlgj.supabase.co/rest/v1/Team";
 const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxMTkzOTAsImV4cCI6MjA0NzY5NTM5MH0.F0oWS3trwHiyKkRIrETs3g6-544JMFWwylwdJP4QiYQ";
+
 interface Team {
   id: string;
   name: string;
   description?: string;
 }
+
 const TeamConfirmation = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,6 +29,7 @@ const TeamConfirmation = () => {
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInCard = useFadeIn("up", 300);
+
   useEffect(() => {
     // Get contactId from URL query params or session storage
     const params = new URLSearchParams(location.search);
@@ -49,6 +52,7 @@ const TeamConfirmation = () => {
       }
     }
   }, [location]);
+
   const fetchTeamData = async (contactId: string) => {
     try {
       console.log("Fetching team data for contact ID:", contactId);
@@ -79,6 +83,7 @@ const TeamConfirmation = () => {
       setLoading(false);
     }
   };
+
   const handleJoinTeam = async () => {
     if (!contactId || !team) {
       toast.error("Missing contact or team information");
@@ -104,13 +109,16 @@ const TeamConfirmation = () => {
       setJoining(false);
     }
   };
+
   const handleSkip = () => {
     toast.info("Skipped joining a team");
     navigate("/dashboard");
   };
+
   const handleBack = () => {
     navigate(-1);
   };
+
   return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
@@ -143,7 +151,7 @@ const TeamConfirmation = () => {
                     {team.description && <p className="text-gray-600">{team.description}</p>}
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-4">
                       <p className="text-blue-800">
-                        You've been invited to join this team. Would you like to accept?
+                        Do you want to join {team.name} team? This will allow you to share your network with your team and to get access to your team's network too.
                       </p>
                     </div>
                   </div>
@@ -153,13 +161,13 @@ const TeamConfirmation = () => {
                         <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                         Joining...
                       </Button> : <Button className="w-full" onClick={handleJoinTeam}>
-                        <CheckCircle size={18} className="mr-2" />
+                        <Users size={18} className="mr-2" />
                         Join Team
                       </Button>}
                     
                     <Button variant="outline" className="w-full" onClick={handleSkip}>
                       <X size={16} className="mr-2" />
-                      I'll Skip For Now
+                      Skip this step
                     </Button>
                     
                     <Button variant="ghost" className="w-full" onClick={handleBack}>
@@ -200,4 +208,5 @@ const TeamConfirmation = () => {
       </div>
     </div>;
 };
+
 export default TeamConfirmation;
