@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Calendar, RefreshCw, ArrowLeft } from "lucide-react";
+import { CheckCircle, Calendar, ArrowLeft, CalendarPlus, ArrowRight } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 
@@ -25,7 +25,21 @@ const Success = () => {
     const id = params.get("contactId");
     const fromCronofy = params.get("fromCronofy");
     
-    setContactId(id);
+    if (id) {
+      console.log("Found contactId in URL:", id);
+      setContactId(id);
+      // Store contactId in sessionStorage to persist it
+      sessionStorage.setItem("boardyContactId", id);
+    } else {
+      // Try to get from sessionStorage if not in URL
+      const storedId = sessionStorage.getItem("boardyContactId");
+      if (storedId) {
+        console.log("Retrieved contactId from sessionStorage:", storedId);
+        setContactId(storedId);
+      } else {
+        console.warn("No contactId found in URL or sessionStorage");
+      }
+    }
     
     // Check if returning from Cronofy
     if (fromCronofy === "true") {
@@ -35,8 +49,11 @@ const Success = () => {
   }, [location]);
 
   const handleConnectCalendar = async () => {
-    if (!contactId) {
-      toast.error("Contact ID is missing. Please try again.");
+    // Use contactId from state, which is populated from URL or sessionStorage
+    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    
+    if (!idToUse) {
+      toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
     }
 
@@ -45,7 +62,7 @@ const Success = () => {
 
     try {
       // Direct API URL as provided
-      const cronofyUrl = `https://boardy-server-v36-production.up.railway.app/api/cronofy/auth/${contactId}?redirect=${encodeURIComponent(window.location.origin + "/success?fromCronofy=true&contactId=" + contactId)}`;
+      const cronofyUrl = `https://boardy-server-v36-production.up.railway.app/api/cronofy/auth/${idToUse}?redirect=${encodeURIComponent(window.location.origin + "/success?fromCronofy=true&contactId=" + idToUse)}`;
       console.log("Attempting to connect to Cronofy:", cronofyUrl);
       
       // Redirect the user to the Cronofy auth endpoint
@@ -116,59 +133,54 @@ const Success = () => {
                 </p>
               </div>
               
+              {/* Always display the three buttons */}
               <div className="w-full space-y-3">
-                {returningFromCronofy ? (
-                  // Show this when returning from Cronofy
+                {connecting ? (
+                  // Show loading state when connecting
                   <Button 
-                    className="w-full bg-green-600 hover:bg-green-700" 
-                    onClick={handleContinue}
+                    className="w-full" 
+                    disabled={true}
                   >
-                    Continue Onboarding
+                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Connecting...
                   </Button>
-                ) : connectionError ? (
-                  // Show this when there's a connection error
-                  <>
-                    <div className="px-4 py-3 mb-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
-                      <p>There was an issue connecting to the calendar service. Please try again.</p>
-                    </div>
-                    <Button 
-                      className="w-full" 
-                      onClick={handleConnectCalendar}
-                    >
-                      <RefreshCw className="mr-2" size={18} />
-                      Retry Calendar Connection
-                    </Button>
-                  </>
                 ) : (
-                  // Default connect calendar button
+                  // Connect calendar button
                   <Button 
                     className="w-full" 
                     onClick={handleConnectCalendar}
-                    disabled={connecting}
                   >
-                    {connecting ? (
-                      <>
-                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                        Connecting...
-                      </>
-                    ) : (
-                      <>
-                        <Calendar className="mr-2" size={18} />
-                        Connect Calendar
-                      </>
-                    )}
+                    <CalendarPlus className="mr-2" size={18} />
+                    Connect Another Calendar
                   </Button>
                 )}
                 
+                {/* Continue button */}
+                <Button 
+                  className="w-full bg-green-600 hover:bg-green-700" 
+                  onClick={handleContinue}
+                >
+                  <ArrowRight className="mr-2" size={18} />
+                  I'm good, let's move on
+                </Button>
+                
+                {/* Return home button */}
                 <Button 
                   variant="outline" 
                   className="w-full"
                   onClick={handleReturnHome}
                 >
                   <ArrowLeft size={16} className="mr-2" />
-                  Return to Home
+                  Back
                 </Button>
               </div>
+              
+              {/* Show connection error if applicable */}
+              {connectionError && (
+                <div className="px-4 py-3 mt-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
+                  <p>There was an issue connecting to the calendar service. Please try again.</p>
+                </div>
+              )}
             </div>
           </GlassCard>
           
