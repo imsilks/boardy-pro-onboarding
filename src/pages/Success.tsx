@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -122,7 +123,11 @@ const Success = () => {
           <GlassCard className="p-6 sm:p-8 w-full" intensity="heavy" blur="lg">
             <div className="py-6 flex flex-col items-center justify-center space-y-6">
               <div className="text-green-500 mb-2">
-                <CheckCircle size={64} className="mx-auto" />
+                {returningFromCronofy ? (
+                  <Calendar size={64} className="mx-auto" />
+                ) : (
+                  <CheckCircle size={64} className="mx-auto" />
+                )}
               </div>
               <div className="text-center">
                 <h2 className="text-xl font-semibold mb-2">
@@ -151,7 +156,7 @@ const Success = () => {
                     onClick={handleConnectCalendar}
                   >
                     <CalendarPlus className="mr-2" size={18} />
-                    Connect Another Calendar
+                    {returningFromCronofy ? "Connect Another Calendar" : "Connect Your Calendar"}
                   </Button>
                 )}
                 
@@ -160,7 +165,7 @@ const Success = () => {
                   onClick={handleContinue}
                 >
                   <ArrowRight className="mr-2" size={18} />
-                  I'm good, let's move on
+                  {returningFromCronofy ? "Continue to Booking Link" : "I'm good, let's move on"}
                 </Button>
                 
                 <Button 
