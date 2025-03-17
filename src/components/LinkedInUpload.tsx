@@ -121,7 +121,10 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({ contactId, onComplete, 
           </div>
           
           {!uploading && !file && (
-            <FileUploadArea onFileSelected={handleFileSelected} />
+            <FileUploadArea 
+              file={file}
+              onFileSelect={handleFileSelected} 
+            />
           )}
           
           {file && !uploadError && (
@@ -135,25 +138,33 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({ contactId, onComplete, 
           )}
           
           {uploading && (
-            <UploadProgress progress={uploadProgress} />
+            <UploadProgress 
+              isUploading={uploading}
+              progress={uploadProgress} 
+            />
           )}
           
           {uploadError && (
             <UploadError 
               error={uploadError} 
-              onRetry={() => handleUpload()} 
-              onSelectNewFile={() => setFile(null)}
+              onRetry={handleUpload}
             />
           )}
           
           <HelpText />
           
           <ActionButtons 
-            file={file}
-            uploading={uploading}
+            isFileSelected={!!file}
+            isUploading={uploading}
             onUpload={handleUpload}
             onSkip={handleSkip}
             onBack={onBack}
+            canSimulateSuccess={process.env.NODE_ENV === 'development'}
+            onSimulateSuccess={() => {
+              setUploadSuccess(true);
+              toast.success("Simulated successful import");
+              setTimeout(onComplete, 1000);
+            }}
           />
         </>
       )}

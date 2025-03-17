@@ -9,8 +9,8 @@ interface ActionButtonsProps {
   onSkip: () => void;
   isUploading: boolean;
   isFileSelected: boolean;
-  canSimulateSuccess: boolean;
-  onSimulateSuccess: () => void;
+  canSimulateSuccess?: boolean;
+  onSimulateSuccess?: () => void;
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({ 
@@ -61,7 +61,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         </Button>
       </div>
       
-      {canSimulateSuccess && (
+      {canSimulateSuccess && onSimulateSuccess && (
         <div className="mt-4">
           <Button variant="secondary" size="sm" onClick={onSimulateSuccess} className="w-full text-xs">
             Simulate Success (DEV)
