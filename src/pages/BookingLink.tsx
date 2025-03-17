@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -75,9 +74,9 @@ const BookingLink = () => {
         console.log("No booking link provided, skipping save operation");
       }
       
-      // Navigate to team confirmation page
+      // Navigate to join team page
       setTimeout(() => {
-        navigate(`/team-confirmation?contactId=${contactId}`);
+        navigate(`/join-team?contactId=${contactId}`);
       }, 500);
     } catch (error) {
       console.error("Error saving booking link:", error);
@@ -91,9 +90,9 @@ const BookingLink = () => {
     toast.info("Skipped adding a booking link");
     
     if (contactId) {
-      navigate(`/team-confirmation?contactId=${contactId}`);
+      navigate(`/join-team?contactId=${contactId}`);
     } else {
-      navigate("/team-confirmation");
+      navigate("/join-team");
     }
   };
 

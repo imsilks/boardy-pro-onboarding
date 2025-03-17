@@ -22,7 +22,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/success" element={<Success />} />
           <Route path="/booking-link" element={<BookingLink />} />
-          <Route path="/team-confirmation" element={<TeamConfirmation />} />
+          <Route path="/join-team" element={<TeamConfirmation />} />
           <Route path="/dashboard" element={<NotFound />} /> {/* Placeholder for dashboard */}
           <Route path="*" element={<NotFound />} />
         </Routes>
