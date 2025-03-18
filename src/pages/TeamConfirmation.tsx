@@ -7,16 +7,17 @@ import { ArrowLeft, CheckCircle, Users, X } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { useContactId } from "@/hooks/useContactId";
-
 interface Team {
   id: string;
   name: string;
   description?: string;
 }
-
 const TeamConfirmation = () => {
   const navigate = useNavigate();
-  const { contactId, loading: contactLoading } = useContactId();
+  const {
+    contactId,
+    loading: contactLoading
+  } = useContactId();
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
@@ -24,7 +25,6 @@ const TeamConfirmation = () => {
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInCard = useFadeIn("up", 300);
-
   useEffect(() => {
     if (contactId && !contactLoading) {
       fetchTeamData(contactId);
@@ -32,7 +32,6 @@ const TeamConfirmation = () => {
       setLoading(false);
     }
   }, [contactId, contactLoading]);
-
   const fetchTeamData = async (contactId: string) => {
     try {
       console.log("Fetching team data for contact ID:", contactId);
@@ -42,21 +41,18 @@ const TeamConfirmation = () => {
       const response = await fetch("https://hook.us1.make.com/g87troduox4zhgp2fu8x9envk628hpd6", {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           contactId: contactId,
           teamName: "Boardy" // Default team name as shown in the example
         })
       });
-
       if (!response.ok) {
         throw new Error(`Failed to fetch team data: ${response.status}`);
       }
-
       const teamData = await response.json();
       console.log("Team data response:", teamData);
-
       if (teamData && teamData.id) {
         setTeam({
           id: teamData.id,
@@ -73,13 +69,11 @@ const TeamConfirmation = () => {
       setLoading(false);
     }
   };
-
   const handleJoinTeam = async () => {
     if (!contactId || !team) {
       toast.error("Missing contact or team information");
       return;
     }
-    
     setJoining(true);
     try {
       console.log(`Joining team: ${team.name} (${team.id}) for contact: ${contactId}`);
@@ -88,7 +82,7 @@ const TeamConfirmation = () => {
       const response = await fetch("https://hook.us1.make.com/g87troduox4zhgp2fu8x9envk628hpd6", {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           contactId: contactId,
@@ -96,11 +90,9 @@ const TeamConfirmation = () => {
           action: "join" // Additional parameter to indicate join action
         })
       });
-
       if (!response.ok) {
         throw new Error(`Failed to join team: ${response.status}`);
       }
-
       toast.success(`You've joined ${team.name}!`);
 
       // Navigate to onboarding complete page
@@ -114,16 +106,13 @@ const TeamConfirmation = () => {
       setJoining(false);
     }
   };
-
   const handleSkip = () => {
     toast.info("Skipped joining a team");
     navigate(`/onboarding-complete${contactId ? `?contactId=${contactId}` : ''}`);
   };
-
   const handleBack = () => {
     navigate(-1);
   };
-
   return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
@@ -194,7 +183,7 @@ const TeamConfirmation = () => {
                 </div>
                 
                 <div className="pt-4 w-full space-y-3">
-                  <Button variant="outline" className="w-full" onClick={handleSkip}>
+                  <Button variant="outline" onClick={handleSkip} className="w-full bg-slate-400 hover:bg-slate-300 text-slate-50">
                     Skip this step
                   </Button>
                   
@@ -206,12 +195,9 @@ const TeamConfirmation = () => {
               </div>}
           </GlassCard>
           
-          <p className="mt-6 text-center text-sm text-gray-500 animate-fade-in">
-            Joining a team will allow you to collaborate with others
-          </p>
+          <p className="mt-6 text-center text-sm text-gray-500 animate-fade-in">Joining a team will allow you to share your network with your team and for them to also have access to your network.</p>
         </div>
       </div>
     </div>;
 };
-
 export default TeamConfirmation;
