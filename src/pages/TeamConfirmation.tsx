@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -17,14 +17,21 @@ interface Team {
 
 const TeamConfirmation = () => {
   const navigate = useNavigate();
+  const params = useParams();
+  const teamSlug = params.teamSlug;
+  
   const {
     contactId,
     teamName: urlTeamName,
     loading: contactLoading
   } = useContactId();
+  
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+
+  // Use teamSlug from URL params if available, otherwise fall back to the one extracted in useContactId
+  const effectiveTeamName = teamSlug || urlTeamName || "Boardy";
 
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
@@ -36,11 +43,12 @@ const TeamConfirmation = () => {
     } else if (!contactLoading) {
       setLoading(false);
     }
-  }, [contactId, contactLoading]);
+  }, [contactId, contactLoading, effectiveTeamName]);
 
   const fetchTeamData = async (contactId: string) => {
     try {
       console.log("Fetching team data for contact ID:", contactId);
+      console.log("Using team name:", effectiveTeamName);
       setLoading(true);
 
       // Call the Make.com webhook to fetch team information
@@ -51,7 +59,7 @@ const TeamConfirmation = () => {
         },
         body: JSON.stringify({
           contactId: contactId,
-          teamName: urlTeamName || "Boardy" // Use team name from URL path or default
+          teamName: effectiveTeamName
         })
       });
 
@@ -65,7 +73,7 @@ const TeamConfirmation = () => {
       if (teamData && teamData.id) {
         setTeam({
           id: teamData.id,
-          name: teamData.name || urlTeamName || "Your Team",
+          name: teamData.name || effectiveTeamName,
           description: teamData.description || "Join your team to collaborate and share your network."
         });
       } else {
@@ -97,7 +105,7 @@ const TeamConfirmation = () => {
         },
         body: JSON.stringify({
           contactId: contactId,
-          teamName: team.name,
+          teamName: effectiveTeamName,
           action: "join" // Additional parameter to indicate join action
         })
       });
@@ -130,7 +138,7 @@ const TeamConfirmation = () => {
 
       // Navigate to onboarding complete page with path preserving team slug if it exists
       setTimeout(() => {
-        const teamPath = urlTeamName ? `/${urlTeamName}` : '';
+        const teamPath = teamSlug ? `/${teamSlug}` : '';
         navigate(`${teamPath}/onboarding-complete?contactId=${contactId}`);
       }, 500);
     } catch (error) {
@@ -144,7 +152,7 @@ const TeamConfirmation = () => {
   const handleSkip = () => {
     toast.info("Skipped joining a team");
     // Preserve team slug in path if it exists
-    const teamPath = urlTeamName ? `/${urlTeamName}` : '';
+    const teamPath = teamSlug ? `/${teamSlug}` : '';
     navigate(`${teamPath}/onboarding-complete${contactId ? `?contactId=${contactId}` : ''}`);
   };
 
