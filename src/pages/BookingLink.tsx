@@ -10,6 +10,8 @@ import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
+const BOOKING_LINK_API_ENDPOINT = "https://hook.us1.make.com/lilxxslc2dg7l3kqvri9ky4a4fjodsdl";
+
 const BookingLink = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,11 +70,23 @@ const BookingLink = () => {
 
     try {
       if (bookingLink) {
-        // Here we'd save the booking link to the database
         console.log(`Saving booking link: ${bookingLink} for contact: ${idToUse}`);
         
-        // Simulate API call to save the booking link
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Call the API to store the booking link
+        const response = await fetch(BOOKING_LINK_API_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contactId: idToUse,
+            calendarBookingLink: bookingLink
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
         
         toast.success("Booking link saved successfully!");
       } else {
