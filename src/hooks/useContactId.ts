@@ -6,13 +6,24 @@ import { toast } from 'sonner';
 /**
  * Hook to manage contactId persistence across the application
  * Gets contactId from URL params or sessionStorage and keeps it in sync
+ * Also extracts team name from URL path if available
  */
 export function useContactId() {
   const location = useLocation();
   const [contactId, setContactId] = useState<string | null>(null);
+  const [teamName, setTeamName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Extract team name from path if it exists
+    // Format: /creandum/join-team or /creandum/whatever
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    if (pathSegments.length > 0 && !['join-team', 'booking-link', 'onboarding-complete', 'success'].includes(pathSegments[0])) {
+      // First segment is likely a team name
+      setTeamName(pathSegments[0]);
+      console.log("Extracted team name from URL path:", pathSegments[0]);
+    }
+
     // Get contactId from URL query params
     const params = new URLSearchParams(location.search);
     const id = params.get("contactId");
@@ -58,6 +69,7 @@ export function useContactId() {
 
   return {
     contactId,
+    teamName,
     loading,
     getContactId,
     updateContactId

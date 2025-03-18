@@ -26,6 +26,14 @@ const App = () => (
           <Route path="/join-team" element={<TeamConfirmation />} />
           <Route path="/onboarding-complete" element={<OnboardingComplete />} />
           <Route path="/dashboard" element={<NotFound />} /> {/* Placeholder for dashboard */}
+          
+          {/* Team-specific routes */}
+          <Route path="/:teamSlug" element={<Index />} />
+          <Route path="/:teamSlug/success" element={<Success />} />
+          <Route path="/:teamSlug/booking-link" element={<BookingLink />} />
+          <Route path="/:teamSlug/join-team" element={<TeamConfirmation />} />
+          <Route path="/:teamSlug/onboarding-complete" element={<OnboardingComplete />} />
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

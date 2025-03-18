@@ -19,6 +19,7 @@ const TeamConfirmation = () => {
   const navigate = useNavigate();
   const {
     contactId,
+    teamName: urlTeamName,
     loading: contactLoading
   } = useContactId();
   const [team, setTeam] = useState<Team | null>(null);
@@ -50,7 +51,7 @@ const TeamConfirmation = () => {
         },
         body: JSON.stringify({
           contactId: contactId,
-          teamName: "Boardy" // Default team name as shown in the example
+          teamName: urlTeamName || "Boardy" // Use team name from URL path or default
         })
       });
 
@@ -64,7 +65,7 @@ const TeamConfirmation = () => {
       if (teamData && teamData.id) {
         setTeam({
           id: teamData.id,
-          name: teamData.name || "Your Team",
+          name: teamData.name || urlTeamName || "Your Team",
           description: teamData.description || "Join your team to collaborate and share your network."
         });
       } else {
@@ -127,9 +128,10 @@ const TeamConfirmation = () => {
 
       toast.success(`You've joined ${team.name}!`);
 
-      // Navigate to onboarding complete page
+      // Navigate to onboarding complete page with path preserving team slug if it exists
       setTimeout(() => {
-        navigate(`/onboarding-complete?contactId=${contactId}`);
+        const teamPath = urlTeamName ? `/${urlTeamName}` : '';
+        navigate(`${teamPath}/onboarding-complete?contactId=${contactId}`);
       }, 500);
     } catch (error) {
       console.error("Error joining team:", error);
@@ -141,7 +143,9 @@ const TeamConfirmation = () => {
 
   const handleSkip = () => {
     toast.info("Skipped joining a team");
-    navigate(`/onboarding-complete${contactId ? `?contactId=${contactId}` : ''}`);
+    // Preserve team slug in path if it exists
+    const teamPath = urlTeamName ? `/${urlTeamName}` : '';
+    navigate(`${teamPath}/onboarding-complete${contactId ? `?contactId=${contactId}` : ''}`);
   };
 
   const handleBack = () => {
