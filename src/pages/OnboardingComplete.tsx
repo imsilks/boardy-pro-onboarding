@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import { CheckCircle, X } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { useContactId } from "@/hooks/useContactId";
@@ -55,8 +55,13 @@ const OnboardingComplete = () => {
     }
   };
 
-  const handleGoToDashboard = () => {
-    navigate("/dashboard");
+  const handleClose = () => {
+    window.close();
+    // As a fallback, if window.close() doesn't work (which can happen in some browsers)
+    // We'll show a message telling the user they can close the tab
+    setTimeout(() => {
+      toast.info("You can now close this tab to complete the onboarding process.");
+    }, 300);
   };
 
   return (
@@ -93,11 +98,11 @@ const OnboardingComplete = () => {
                 
                 <div className="w-full space-y-3">
                   <Button 
-                    className="w-full bg-green-600 hover:bg-green-700" 
-                    onClick={handleGoToDashboard}
+                    className="w-full" 
+                    onClick={handleClose}
                   >
-                    <ArrowRight className="mr-2" size={18} />
-                    Go to Dashboard
+                    <X className="mr-2" size={18} />
+                    Close
                   </Button>
                 </div>
               </div>
