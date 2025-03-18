@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -7,12 +6,15 @@ import { CheckCircle, Calendar, ArrowLeft, CalendarPlus, ArrowRight } from "luci
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { getCronofyAuthUrl } from "@/lib/api";
+import { useContactId } from "@/hooks/useContactId";
 
 const Success = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const params = useParams();
   const teamSlug = params.teamSlug;
+  
+  const { getTeamSlug } = useContactId();
   
   const [contactId, setContactId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
@@ -70,7 +72,7 @@ const Success = () => {
     
     try {
       console.log("Attempting to connect to Cronofy with contactId:", idToUse);
-      const cronofyUrl = getCronofyAuthUrl(idToUse);
+      const cronofyUrl = getCronofyAuthUrl(idToUse, teamSlug || getTeamSlug());
       
       if (cronofyUrl) {
         console.log("Redirecting to Cronofy URL:", cronofyUrl);
@@ -100,13 +102,16 @@ const Success = () => {
       return;
     }
     
-    // Include the teamSlug in the path if it exists
     const path = teamSlug ? `/${teamSlug}/booking-link` : `/booking-link`;
     navigate(`${path}?contactId=${idToUse}`);
   };
 
   const handleReturnHome = () => {
-    navigate("/");
+    if (teamSlug) {
+      navigate(`/${teamSlug}`);
+    } else {
+      navigate('/');
+    }
   };
 
   return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
@@ -166,7 +171,6 @@ const Success = () => {
                 </div>}
             </div>
           </GlassCard>
-          
           
         </div>
       </div>

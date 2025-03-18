@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { getCronofyAuthUrl, isUrlReachable, formatPhoneNumber } from "@/lib/api";
@@ -6,8 +5,13 @@ import { fetchContactByPhoneSecure } from "@/api/contact-lookup";
 import { useFadeIn } from "@/lib/animations";
 import HeaderSection from "@/components/HeaderSection";
 import PhoneFormSection from "@/components/PhoneFormSection";
+import { useParams } from "react-router-dom";
 
 const Index = () => {
+  // Get teamSlug from route params
+  const params = useParams();
+  const teamSlug = params.teamSlug;
+
   // State for phone validation and lookup
   const [loading, setLoading] = useState(false);
   const [phoneValid, setPhoneValid] = useState(false);
@@ -69,8 +73,8 @@ const Index = () => {
     if (contact) {
       setRedirecting(true);
       
-      // Get Cronofy auth URL with the contact ID and redirect
-      const cronofyUrl = getCronofyAuthUrl(contact.id);
+      // Get Cronofy auth URL with the contact ID and teamSlug and redirect
+      const cronofyUrl = getCronofyAuthUrl(contact.id, teamSlug);
       console.log("Redirecting to:", cronofyUrl);
       
       try {
@@ -104,7 +108,7 @@ const Index = () => {
       setRedirectError(false);
       setRedirecting(true);
       
-      const cronofyUrl = getCronofyAuthUrl(contact.id);
+      const cronofyUrl = getCronofyAuthUrl(contact.id, teamSlug);
       toast.success("Retrying connection...");
       
       // Redirect after a short delay
