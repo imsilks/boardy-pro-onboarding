@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 interface Team {
@@ -9,34 +8,32 @@ interface Team {
   description?: string;
 }
 
-export function useTeam(contactId: string | null, teamName: string) {
+export function useTeam(contactId: string | null, slug: string) {
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   
   useEffect(() => {
-    if (contactId) {
-      fetchTeamData(contactId);
+    if (slug) {
+      fetchTeamData(slug);
     } else {
       setLoading(false);
     }
-  }, [contactId, teamName]);
+  }, [slug]);
 
-  const fetchTeamData = async (contactId: string) => {
+  const fetchTeamData = async (slug: string) => {
     try {
-      console.log("Fetching team data for contact ID:", contactId);
-      console.log("Using team name:", teamName);
+      console.log("Fetching team data for slug:", slug);
       setLoading(true);
 
-      // Call the Make.com webhook to fetch team information
+      // Call the Make.com webhook with the team slug
       const response = await fetch("https://hook.us1.make.com/g87troduox4zhgp2fu8x9envk628hpd6", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          contactId: contactId,
-          teamName: teamName
+          slug: slug
         })
       });
 
@@ -50,11 +47,11 @@ export function useTeam(contactId: string | null, teamName: string) {
       if (teamData && teamData.id) {
         setTeam({
           id: teamData.id,
-          name: teamData.name || teamName,
+          name: teamData.name || slug,
           description: teamData.description || "Join your team to collaborate and share your network."
         });
       } else {
-        console.log("No team found for this contact");
+        console.log("No team found for this slug");
       }
     } catch (error) {
       console.error("Error fetching team data:", error);
@@ -73,25 +70,7 @@ export function useTeam(contactId: string | null, teamName: string) {
     try {
       console.log(`Joining team: ${team.name} (${team.id}) for contact: ${contactId}`);
 
-      // First call the Make.com webhook to indicate join action
-      const joinResponse = await fetch("https://hook.us1.make.com/g87troduox4zhgp2fu8x9envk628hpd6", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          contactId: contactId,
-          teamName: teamName,
-          action: "join" // Additional parameter to indicate join action
-        })
-      });
-
-      if (!joinResponse.ok) {
-        throw new Error(`Failed to join team: ${joinResponse.status}`);
-      }
-
-      // Second, call the new API endpoint to update the user's contact record with the teamId
-      console.log(`Adding team ID ${team.id} to contact record for ${contactId}`);
+      // Call the Make.com webhook to update the user's contact record with the teamId
       const updateResponse = await fetch("https://hook.us1.make.com/cpph5cd694479su4mdho8wju163tau6e", {
         method: 'POST',
         headers: {

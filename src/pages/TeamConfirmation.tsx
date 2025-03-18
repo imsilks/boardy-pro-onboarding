@@ -18,16 +18,13 @@ const TeamConfirmation = () => {
   
   const {
     contactId,
-    teamName: urlTeamName,
     loading: contactLoading
   } = useContactId();
   
-  // Use teamSlug from URL params if available, otherwise fall back to the one extracted in useContactId
-  const effectiveTeamName = teamSlug || urlTeamName || "Boardy";
-  
+  // Pass the teamSlug directly to useTeam instead of teamName
   const { team, loading, joining, joinTeam } = useTeam(
     contactId, 
-    effectiveTeamName
+    teamSlug || ""
   );
 
   // Animation states

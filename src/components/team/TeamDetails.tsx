@@ -30,7 +30,7 @@ const TeamDetails = ({ team, joining, onJoin, onSkip, onBack }: TeamDetailsProps
           {team.description && <p className="text-gray-600">{team.description}</p>}
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-4">
             <p className="text-blue-800">
-              Do you want to join {team.name} team? This will allow you to share your network with your team and to get access to your team's network too.
+              Do you want to join the {team.name} team? This will allow you to share your network with your team and to get access to your team's network too.
             </p>
           </div>
         </div>
