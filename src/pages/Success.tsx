@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Calendar, ArrowLeft, CalendarPlus, ArrowRight } from "lucide-react";
@@ -11,6 +11,9 @@ import { getCronofyAuthUrl } from "@/lib/api";
 const Success = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const params = useParams();
+  const teamSlug = params.teamSlug;
+  
   const [contactId, setContactId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
@@ -19,9 +22,9 @@ const Success = () => {
   const fadeInCard = useFadeIn("up", 300);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const id = params.get("contactId");
-    const fromCronofy = params.get("fromCronofy");
+    const searchParams = new URLSearchParams(location.search);
+    const id = searchParams.get("contactId");
+    const fromCronofy = searchParams.get("fromCronofy");
     
     if (id) {
       console.log("Found contactId in URL:", id);
@@ -97,7 +100,9 @@ const Success = () => {
       return;
     }
     
-    navigate(`/booking-link?contactId=${idToUse}`);
+    // Include the teamSlug in the path if it exists
+    const path = teamSlug ? `/${teamSlug}/booking-link` : `/booking-link`;
+    navigate(`${path}?contactId=${idToUse}`);
   };
 
   const handleReturnHome = () => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,10 +8,15 @@ import { ArrowLeft, ArrowRight, CalendarCheck, ExternalLink } from "lucide-react
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+
 const BOOKING_LINK_API_ENDPOINT = "https://hook.us1.make.com/lilxxslc2dg7l3kqvri9ky4a4fjodsdl";
+
 const BookingLink = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
+  const teamSlug = params.teamSlug;
+  
   const [bookingLink, setBookingLink] = useState("");
   const [contactId, setContactId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -19,10 +24,12 @@ const BookingLink = () => {
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInCard = useFadeIn("up", 300);
+
   useEffect(() => {
     // Get contactId from URL query params or session storage
-    const params = new URLSearchParams(location.search);
-    const id = params.get("contactId");
+    const searchParams = new URLSearchParams(location.search);
+    const id = searchParams.get("contactId");
+    
     if (id) {
       console.log("Found contactId in URL:", id);
       setContactId(id);
@@ -41,6 +48,7 @@ const BookingLink = () => {
       }
     }
   }, [location]);
+
   const handleSubmitBookingLink = async () => {
     // Ensure we always try to get the latest contactId from sessionStorage as fallback
     const idToUse = contactId || sessionStorage.getItem("boardyContactId");
@@ -48,6 +56,7 @@ const BookingLink = () => {
       toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
     }
+    
     if (bookingLink) {
       // Validate URL format if there's a value
       try {
@@ -57,6 +66,7 @@ const BookingLink = () => {
         return;
       }
     }
+    
     setSaving(true);
     try {
       if (bookingLink) {
@@ -73,17 +83,20 @@ const BookingLink = () => {
             calendarBookingLink: bookingLink
           })
         });
+        
         if (!response.ok) {
           throw new Error(`API error: ${response.status}`);
         }
+        
         toast.success("Booking link saved successfully!");
       } else {
         console.log("No booking link provided, skipping save operation");
       }
 
-      // Navigate to join team page with contactId
+      // Include the teamSlug in the navigation if it exists
+      const path = teamSlug ? `/${teamSlug}/join-team` : `/join-team`;
       setTimeout(() => {
-        navigate(`/join-team?contactId=${idToUse}`);
+        navigate(`${path}?contactId=${idToUse}`);
       }, 500);
     } catch (error) {
       console.error("Error saving booking link:", error);
@@ -92,20 +105,26 @@ const BookingLink = () => {
       setSaving(false);
     }
   };
+
   const handleSkip = () => {
     toast.info("Skipped adding a booking link");
 
     // Ensure we always try to get the latest contactId from sessionStorage as fallback
     const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    
+    // Include the teamSlug in the navigation if it exists
+    const path = teamSlug ? `/${teamSlug}/join-team` : `/join-team`;
     if (idToUse) {
-      navigate(`/join-team?contactId=${idToUse}`);
+      navigate(`${path}?contactId=${idToUse}`);
     } else {
-      navigate("/join-team");
+      navigate(path);
     }
   };
+
   const handleBack = () => {
     navigate(-1);
   };
+
   return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
@@ -175,4 +194,5 @@ const BookingLink = () => {
       </div>
     </div>;
 };
+
 export default BookingLink;
