@@ -1,16 +1,13 @@
 
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
-import { Button } from "@/components/ui/button";
-import { CheckCircle, X } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { useContactId } from "@/hooks/useContactId";
 import TeamHeader from "@/components/team/TeamHeader";
 
 const OnboardingComplete = () => {
-  const navigate = useNavigate();
   const { contactId, loading: contactLoading } = useContactId();
   const [updating, setUpdating] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -55,15 +52,6 @@ const OnboardingComplete = () => {
     }
   };
 
-  const handleClose = () => {
-    window.close();
-    // As a fallback, if window.close() doesn't work (which can happen in some browsers)
-    // We'll show a message telling the user they can close the tab
-    setTimeout(() => {
-      toast.info("You can now close this tab to complete the onboarding process.");
-    }, 300);
-  };
-
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
@@ -94,16 +82,6 @@ const OnboardingComplete = () => {
                     Your Boardy Pro account has been successfully set up and activated.
                     {contactId && <span className="text-xs block mt-2 text-gray-400">ID: {contactId}</span>}
                   </p>
-                </div>
-                
-                <div className="w-full space-y-3">
-                  <Button 
-                    className="w-full" 
-                    onClick={handleClose}
-                  >
-                    <X className="mr-2" size={18} />
-                    Close
-                  </Button>
                 </div>
               </div>
             )}
