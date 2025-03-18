@@ -118,7 +118,7 @@ const Success = () => {
                     Connect Another Calendar
                   </Button>}
                 
-                <Button onClick={handleContinue} className="w-full bg-slate-500 hover:bg-slate-400">
+                <Button onClick={handleContinue} className="w-full bg-slate-400 hover:bg-slate-300">
                   <ArrowRight className="mr-2" size={18} />
                   I'm good, let's move on
                 </Button>
