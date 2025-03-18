@@ -41,21 +41,64 @@ export function useTeam(contactId: string | null, slug: string) {
         throw new Error(`Failed to fetch team data: ${response.status}`);
       }
 
-      const teamData = await response.json();
-      console.log("Team data response:", teamData);
+      // Get the response text first to debug
+      const responseText = await response.text();
+      console.log("Raw API response:", responseText);
+      
+      let teamData;
+      try {
+        // Try to parse the JSON response
+        teamData = JSON.parse(responseText);
+        console.log("Parsed team data:", teamData);
+      } catch (parseError) {
+        console.error("Error parsing JSON:", parseError);
+        
+        // If response is not JSON, try to extract data from plain text
+        // The API is returning: "teamId: \nname: " format
+        if (responseText.includes('teamId:') && responseText.includes('name:')) {
+          const lines = responseText.split('\n');
+          const teamId = lines[0].replace('teamId:', '').trim();
+          const teamName = lines[1].replace('name:', '').trim();
+          
+          teamData = {
+            id: teamId || slug,
+            name: teamName || slug
+          };
+          
+          console.log("Extracted team data from text:", teamData);
+        } else {
+          // If we can't parse the response, create a fallback team object
+          teamData = {
+            id: slug,
+            name: slug
+          };
+        }
+      }
 
-      if (teamData && teamData.id) {
+      if (teamData && (teamData.id || teamData.name)) {
         setTeam({
-          id: teamData.id,
+          id: teamData.id || slug,
           name: teamData.name || slug,
           description: teamData.description || "Join your team to collaborate and share your network."
         });
       } else {
-        console.log("No team found for this slug");
+        console.log("No team found for this slug, using slug as fallback");
+        setTeam({
+          id: slug,
+          name: slug,
+          description: "Join your team to collaborate and share your network."
+        });
       }
     } catch (error) {
       console.error("Error fetching team data:", error);
       toast.error("Failed to load team information");
+      
+      // Create a fallback team object using the slug
+      setTeam({
+        id: slug,
+        name: slug,
+        description: "Join your team to collaborate and share your network."
+      });
     } finally {
       setLoading(false);
     }
