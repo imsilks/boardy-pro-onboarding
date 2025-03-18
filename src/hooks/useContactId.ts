@@ -31,8 +31,8 @@ export function useContactId() {
         setContactId(storedId);
       } else {
         console.warn("No contactId found in URL or sessionStorage");
-        // Only show toast error if we're not on the homepage
-        if (location.pathname !== '/') {
+        // Only show toast error if we're not on the homepage or success page
+        if (location.pathname !== '/' && location.pathname !== '/success') {
           toast.error("Contact information is missing");
         }
       }

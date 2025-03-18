@@ -1,17 +1,12 @@
-
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, CheckCircle, Users, X } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-
-// API endpoint for fetching team information
-const TEAM_API_ENDPOINT = "https://zprsisdofgrlsgcmtlgj.supabase.co/rest/v1/Team";
-const SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwcnNpc2RvZmdybHNnY210bGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxMTkzOTAsImV4cCI6MjA0NzY5NTM5MH0.F0oWS3trwHiyKkRIrETs3g6-544JMFWwylwdJP4QiYQ";
+import { useContactId } from "@/hooks/useContactId";
 
 interface Team {
   id: string;
@@ -21,8 +16,7 @@ interface Team {
 
 const TeamConfirmation = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [contactId, setContactId] = useState<string | null>(null);
+  const { contactId, loading: contactLoading } = useContactId();
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
@@ -32,52 +26,43 @@ const TeamConfirmation = () => {
   const fadeInCard = useFadeIn("up", 300);
 
   useEffect(() => {
-    // Get contactId from URL query params or session storage
-    const params = new URLSearchParams(location.search);
-    const id = params.get("contactId");
-    
-    if (id) {
-      console.log("Found contactId in URL:", id);
-      setContactId(id);
-      // Store in sessionStorage for subsequent pages
-      sessionStorage.setItem("boardyContactId", id);
-      console.log("Stored/updated contactId in sessionStorage:", id);
-      fetchTeamData(id);
-    } else {
-      // Try to get from sessionStorage if not in URL
-      const storedId = sessionStorage.getItem("boardyContactId");
-      if (storedId) {
-        console.log("Retrieved contactId from sessionStorage:", storedId);
-        setContactId(storedId);
-        fetchTeamData(storedId);
-      } else {
-        console.warn("No contactId found in URL or sessionStorage");
-        toast.error("Contact information is missing");
-        setLoading(false);
-      }
+    if (contactId && !contactLoading) {
+      fetchTeamData(contactId);
+    } else if (!contactLoading) {
+      setLoading(false);
     }
-  }, [location]);
+  }, [contactId, contactLoading]);
 
   const fetchTeamData = async (contactId: string) => {
     try {
       console.log("Fetching team data for contact ID:", contactId);
+      setLoading(true);
 
-      // Fetch team data associated with the contactId
-      const response = await fetch(`${TEAM_API_ENDPOINT}?contact_id=eq.${encodeURIComponent(contactId)}`, {
-        method: 'GET',
+      // Call the Make.com webhook to fetch team information
+      const response = await fetch("https://hook.us1.make.com/g87troduox4zhgp2fu8x9envk628hpd6", {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': SUPABASE_API_KEY,
-          'Authorization': `Bearer ${SUPABASE_API_KEY}`
-        }
+        },
+        body: JSON.stringify({
+          contactId: contactId,
+          teamName: "Boardy" // Default team name as shown in the example
+        })
       });
+
       if (!response.ok) {
         throw new Error(`Failed to fetch team data: ${response.status}`);
       }
-      const teams = await response.json();
-      console.log("Team data response:", teams);
-      if (teams && teams.length > 0) {
-        setTeam(teams[0]);
+
+      const teamData = await response.json();
+      console.log("Team data response:", teamData);
+
+      if (teamData && teamData.id) {
+        setTeam({
+          id: teamData.id,
+          name: teamData.name || "Your Team",
+          description: teamData.description || "Join your team to collaborate and share your network."
+        });
       } else {
         console.log("No team found for this contact");
       }
@@ -90,26 +75,37 @@ const TeamConfirmation = () => {
   };
 
   const handleJoinTeam = async () => {
-    // Ensure we always try to get the latest contactId from sessionStorage as fallback
-    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
-    
-    if (!idToUse || !team) {
+    if (!contactId || !team) {
       toast.error("Missing contact or team information");
       return;
     }
     
     setJoining(true);
     try {
-      // Here we would use the API endpoint to map TeamId to ContactId
-      console.log(`Joining team: ${team.name} (${team.id}) for contact: ${idToUse}`);
+      console.log(`Joining team: ${team.name} (${team.id}) for contact: ${contactId}`);
 
-      // Placeholder for the API call - will be replaced with actual implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the same API endpoint to confirm team joining
+      const response = await fetch("https://hook.us1.make.com/g87troduox4zhgp2fu8x9envk628hpd6", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contactId: contactId,
+          teamName: team.name,
+          action: "join" // Additional parameter to indicate join action
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to join team: ${response.status}`);
+      }
+
       toast.success(`You've joined ${team.name}!`);
 
       // Navigate to onboarding complete page
       setTimeout(() => {
-        navigate(`/onboarding-complete?contactId=${idToUse}`);
+        navigate(`/onboarding-complete?contactId=${contactId}`);
       }, 500);
     } catch (error) {
       console.error("Error joining team:", error);
@@ -120,9 +116,8 @@ const TeamConfirmation = () => {
   };
 
   const handleSkip = () => {
-    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
     toast.info("Skipped joining a team");
-    navigate(`/onboarding-complete${idToUse ? `?contactId=${idToUse}` : ''}`);
+    navigate(`/onboarding-complete${contactId ? `?contactId=${contactId}` : ''}`);
   };
 
   const handleBack = () => {
