@@ -7,6 +7,7 @@ import { CheckCircle, ArrowRight } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { useContactId } from "@/hooks/useContactId";
+import TeamHeader from "@/components/team/TeamHeader";
 
 const OnboardingComplete = () => {
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ const OnboardingComplete = () => {
   const [updating, setUpdating] = useState(false);
   const [completed, setCompleted] = useState(false);
   
-  const fadeInTitle = useFadeIn("down", 100);
   const fadeInCard = useFadeIn("up", 300);
 
   useEffect(() => {
@@ -29,9 +29,20 @@ const OnboardingComplete = () => {
     try {
       console.log("Updating pro status for contact ID:", contactId);
       
-      // Placeholder for the API call - will be replaced with actual implementation
-      // This will update the isProUser status from FALSE to TRUE
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the Make.com webhook to update isProUser from FALSE to TRUE
+      const response = await fetch("https://hook.us1.make.com/1hafbx8w1vqw5koxa6bslbsjw2sdadic", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contactId: contactId
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
       
       console.log("Pro status updated successfully");
       toast.success("Your account has been upgraded to Pro!");
@@ -53,21 +64,10 @@ const OnboardingComplete = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
       <div className="relative w-full max-w-md flex flex-col items-center z-10">
-        <div className="text-center mb-12" style={fadeInTitle}>
-          <div className="inline-flex items-center justify-center p-2 mb-4">
-            <img 
-              src="/lovable-uploads/2c9ac40a-e01b-418a-91b7-724008309d66.png" 
-              alt="Boardy Pro Logo" 
-              className="h-16 w-16 object-contain"
-            />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-3">
-            Setup Complete
-          </h1>
-          <p className="text-lg text-gray-600">
-            Your Boardy Pro account is ready to use
-          </p>
-        </div>
+        <TeamHeader 
+          title="Setup Complete" 
+          subtitle="Your Boardy Pro account is ready to use" 
+        />
 
         <div className="w-full" style={fadeInCard}>
           <GlassCard className="p-6 sm:p-8 w-full" intensity="heavy" blur="lg">
