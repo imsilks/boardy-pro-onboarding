@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -6,18 +7,22 @@ import { CheckCircle, Calendar, ArrowLeft, CalendarPlus, ArrowRight } from "luci
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { getCronofyAuthUrl } from "@/lib/api";
+
 const Success = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [contactId, setContactId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
+  
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInCard = useFadeIn("up", 300);
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const id = params.get("contactId");
     const fromCronofy = params.get("fromCronofy");
+    
     if (id) {
       console.log("Found contactId in URL:", id);
       setContactId(id);
@@ -33,32 +38,44 @@ const Success = () => {
         toast.error("Contact information is missing");
       }
     }
+    
     if (fromCronofy === "true") {
       toast.success("Calendar connected successfully! Welcome back.");
     }
   }, [location]);
+
   const handleConnectCalendar = async () => {
     let idToUse = contactId;
+    
     if (!idToUse) {
       idToUse = sessionStorage.getItem("boardyContactId");
       console.log("Retrieved contactId from sessionStorage for calendar connection:", idToUse);
+      
+      if (idToUse) {
+        setContactId(idToUse); // Update state if we got it from session storage
+      }
     }
+    
     if (!idToUse) {
       console.error("No contactId available for calendar connection");
       toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
     }
+    
     setConnecting(true);
     setConnectionError(false);
+    
     try {
       console.log("Attempting to connect to Cronofy with contactId:", idToUse);
       const cronofyUrl = getCronofyAuthUrl(idToUse);
+      
       if (cronofyUrl) {
         console.log("Redirecting to Cronofy URL:", cronofyUrl);
         window.location.href = cronofyUrl;
       } else {
         throw new Error("Failed to generate Cronofy URL");
       }
+      
       setTimeout(() => {
         setConnectionError(true);
         setConnecting(false);
@@ -70,13 +87,23 @@ const Success = () => {
       setConnecting(false);
     }
   };
+
   const handleContinue = () => {
     const idToUse = contactId || sessionStorage.getItem("boardyContactId");
-    navigate(`/booking-link${idToUse ? `?contactId=${idToUse}` : ''}`);
+    
+    if (!idToUse) {
+      toast.error("Contact ID is missing. Please try again from the beginning.");
+      navigate("/");
+      return;
+    }
+    
+    navigate(`/booking-link?contactId=${idToUse}`);
   };
+
   const handleReturnHome = () => {
     navigate("/");
   };
+
   return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
@@ -140,4 +167,5 @@ const Success = () => {
       </div>
     </div>;
 };
+
 export default Success;

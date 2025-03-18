@@ -1,16 +1,16 @@
 
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ArrowRight } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
+import { useContactId } from "@/hooks/useContactId";
 
 const OnboardingComplete = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [contactId, setContactId] = useState<string | null>(null);
+  const { contactId, loading: contactLoading } = useContactId();
   const [updating, setUpdating] = useState(false);
   const [completed, setCompleted] = useState(false);
   
@@ -18,27 +18,11 @@ const OnboardingComplete = () => {
   const fadeInCard = useFadeIn("up", 300);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const id = params.get("contactId");
-    
-    if (id) {
-      console.log("Found contactId in URL:", id);
-      setContactId(id);
-      sessionStorage.setItem("boardyContactId", id);
-      console.log("Stored/updated contactId in sessionStorage:", id);
-      updateProStatus(id);
-    } else {
-      const storedId = sessionStorage.getItem("boardyContactId");
-      if (storedId) {
-        console.log("Retrieved contactId from sessionStorage:", storedId);
-        setContactId(storedId);
-        updateProStatus(storedId);
-      } else {
-        console.warn("No contactId found in URL or sessionStorage");
-        toast.error("Contact information is missing");
-      }
+    // Only attempt to update pro status if we have a contactId
+    if (contactId && !contactLoading) {
+      updateProStatus(contactId);
     }
-  }, [location]);
+  }, [contactId, contactLoading]);
 
   const updateProStatus = async (contactId: string) => {
     setUpdating(true);
@@ -87,7 +71,7 @@ const OnboardingComplete = () => {
 
         <div className="w-full" style={fadeInCard}>
           <GlassCard className="p-6 sm:p-8 w-full" intensity="heavy" blur="lg">
-            {updating ? (
+            {updating || contactLoading ? (
               <div className="py-16 flex flex-col items-center justify-center">
                 <div className="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
                 <p className="text-gray-500">Activating your Pro account...</p>
