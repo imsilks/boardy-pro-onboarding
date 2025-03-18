@@ -154,7 +154,7 @@ const BookingLink = () => {
                       Submit
                     </Button>}
                   
-                  <Button variant="outline" onClick={handleSkip} className="w-full bg-slate-500 hover:bg-slate-400 text-slate-50">
+                  <Button variant="outline" onClick={handleSkip} className="w-full text-slate-50 bg-slate-400 hover:bg-slate-300">
                     <ArrowRight size={16} className="mr-2" />
                     Skip This Step
                   </Button>
