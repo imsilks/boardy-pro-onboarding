@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -9,25 +8,21 @@ import { ArrowLeft, ArrowRight, CalendarCheck, ExternalLink } from "lucide-react
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-
 const BOOKING_LINK_API_ENDPOINT = "https://hook.us1.make.com/lilxxslc2dg7l3kqvri9ky4a4fjodsdl";
-
 const BookingLink = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [bookingLink, setBookingLink] = useState("");
   const [contactId, setContactId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  
+
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInCard = useFadeIn("up", 300);
-
   useEffect(() => {
     // Get contactId from URL query params or session storage
     const params = new URLSearchParams(location.search);
     const id = params.get("contactId");
-    
     if (id) {
       console.log("Found contactId in URL:", id);
       setContactId(id);
@@ -46,16 +41,13 @@ const BookingLink = () => {
       }
     }
   }, [location]);
-
   const handleSubmitBookingLink = async () => {
     // Ensure we always try to get the latest contactId from sessionStorage as fallback
     const idToUse = contactId || sessionStorage.getItem("boardyContactId");
-    
     if (!idToUse) {
       toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
     }
-
     if (bookingLink) {
       // Validate URL format if there's a value
       try {
@@ -65,34 +57,30 @@ const BookingLink = () => {
         return;
       }
     }
-
     setSaving(true);
-
     try {
       if (bookingLink) {
         console.log(`Saving booking link: ${bookingLink} for contact: ${idToUse}`);
-        
+
         // Call the API to store the booking link
         const response = await fetch(BOOKING_LINK_API_ENDPOINT, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             contactId: idToUse,
             calendarBookingLink: bookingLink
           })
         });
-        
         if (!response.ok) {
           throw new Error(`API error: ${response.status}`);
         }
-        
         toast.success("Booking link saved successfully!");
       } else {
         console.log("No booking link provided, skipping save operation");
       }
-      
+
       // Navigate to join team page with contactId
       setTimeout(() => {
         navigate(`/join-team?contactId=${idToUse}`);
@@ -104,37 +92,28 @@ const BookingLink = () => {
       setSaving(false);
     }
   };
-
   const handleSkip = () => {
     toast.info("Skipped adding a booking link");
-    
+
     // Ensure we always try to get the latest contactId from sessionStorage as fallback
     const idToUse = contactId || sessionStorage.getItem("boardyContactId");
-    
     if (idToUse) {
       navigate(`/join-team?contactId=${idToUse}`);
     } else {
       navigate("/join-team");
     }
   };
-
   const handleBack = () => {
     navigate(-1);
   };
-
-  return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
+  return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
       <div className="relative w-full max-w-md flex flex-col items-center z-10">
         {/* Header section */}
         <div className="text-center mb-12" style={fadeInTitle}>
           <div className="inline-flex items-center justify-center p-2 mb-4">
-            <img 
-              src="/lovable-uploads/2c9ac40a-e01b-418a-91b7-724008309d66.png" 
-              alt="Boardy Pro Logo" 
-              className="h-16 w-16 object-contain"
-            />
+            <img src="/lovable-uploads/2c9ac40a-e01b-418a-91b7-724008309d66.png" alt="Boardy Pro Logo" className="h-16 w-16 object-contain" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-3">
             Add Booking Link
@@ -157,14 +136,7 @@ const BookingLink = () => {
                   <Label htmlFor="booking-link">Your Calendar Booking Link</Label>
                   <div className="flex items-center space-x-2">
                     <div className="relative flex-grow">
-                      <Input
-                        id="booking-link"
-                        type="url"
-                        placeholder="https://calendly.com/your-link"
-                        value={bookingLink}
-                        onChange={(e) => setBookingLink(e.target.value)}
-                        className="pr-10"
-                      />
+                      <Input id="booking-link" type="url" placeholder="https://calendly.com/your-link" value={bookingLink} onChange={e => setBookingLink(e.target.value)} className="pr-10" />
                       <ExternalLink size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     </div>
                   </div>
@@ -174,35 +146,20 @@ const BookingLink = () => {
                 </div>
                 
                 <div className="pt-4 w-full space-y-3">
-                  {saving ? (
-                    <Button className="w-full" disabled>
+                  {saving ? <Button className="w-full" disabled>
                       <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                       Saving...
-                    </Button>
-                  ) : (
-                    <Button 
-                      className="w-full" 
-                      onClick={handleSubmitBookingLink}
-                    >
+                    </Button> : <Button className="w-full" onClick={handleSubmitBookingLink}>
                       <CalendarCheck size={18} className="mr-2" />
                       Submit
-                    </Button>
-                  )}
+                    </Button>}
                   
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={handleSkip}
-                  >
+                  <Button variant="outline" onClick={handleSkip} className="w-full bg-slate-500 hover:bg-slate-400 text-slate-50">
                     <ArrowRight size={16} className="mr-2" />
                     Skip This Step
                   </Button>
                   
-                  <Button 
-                    variant="ghost" 
-                    className="w-full"
-                    onClick={handleBack}
-                  >
+                  <Button variant="ghost" className="w-full" onClick={handleBack}>
                     <ArrowLeft size={16} className="mr-2" />
                     Back
                   </Button>
@@ -216,8 +173,6 @@ const BookingLink = () => {
           </p>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default BookingLink;
