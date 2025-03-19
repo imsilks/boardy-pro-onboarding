@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
 import { useFadeIn } from "@/lib/animations";
@@ -19,8 +19,20 @@ const TeamConfirmation = () => {
   const {
     contactId,
     loading: contactLoading,
-    getContactId
+    getContactId,
+    updateContactId
   } = useContactId();
+  
+  // Ensure contactId is directly retrieved from sessionStorage on component mount
+  useEffect(() => {
+    const storedContactId = sessionStorage.getItem("boardyContactId");
+    console.log("TeamConfirmation: Retrieved contactId from sessionStorage:", storedContactId);
+    
+    if (storedContactId && !contactId) {
+      console.log("TeamConfirmation: Updating contactId state with stored value");
+      updateContactId(storedContactId);
+    }
+  }, [contactId, updateContactId]);
   
   // Pass the teamSlug directly to useTeam instead of teamName
   const { team, loading, joining, joinTeam } = useTeam(
@@ -32,10 +44,14 @@ const TeamConfirmation = () => {
   const fadeInCard = useFadeIn("up", 300);
 
   const handleJoinTeam = async () => {
-    // Get the latest contactId using multiple sources to ensure we have it
-    const finalContactId = contactId || getContactId();
+    // Directly get contactId from sessionStorage for maximum reliability
+    const storedContactId = sessionStorage.getItem("boardyContactId");
+    // Use stored value first, then state value, then getter method as fallback
+    const finalContactId = storedContactId || contactId || getContactId();
     
-    console.log("Join team button clicked. Contact ID:", finalContactId);
+    console.log("Join team button clicked. Contact ID (stored):", storedContactId);
+    console.log("Join team button clicked. Contact ID (state):", contactId);
+    console.log("Join team button clicked. Final Contact ID used:", finalContactId);
     
     if (!finalContactId) {
       console.error("Missing contact information for join team");
@@ -53,6 +69,7 @@ const TeamConfirmation = () => {
         setTimeout(() => {
           try {
             const teamPath = teamSlug ? `/${teamSlug}` : '';
+            // Add contactId to the URL to ensure it's available after navigation
             const navigatePath = `${teamPath}/onboarding-complete?contactId=${finalContactId}`;
             console.log(`Navigating to: ${navigatePath}`);
             navigate(navigatePath);
