@@ -26,6 +26,10 @@ serve(async (req) => {
 
     console.log(`Processing LinkedIn import for contact ID: ${contactId}`);
 
+    // Get authorization header from the request
+    const authHeader = req.headers.get('Authorization');
+    console.log(`Authorization header present: ${!!authHeader}`);
+    
     // Get the form data from the request
     const formData = await req.formData();
     const file = formData.get('file');
@@ -44,11 +48,18 @@ serve(async (req) => {
     const importUrl = `${LINKEDIN_IMPORT_BASE_URL}/${contactId}`;
     console.log(`Forwarding to: ${importUrl}`);
 
+    // Include headers in the request to the external API
+    const headers: HeadersInit = {};
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+    
     // Important: Don't manually set Content-Type for multipart/form-data requests
     // The browser/fetch API will automatically set it with the proper boundary
     const response = await fetch(importUrl, {
       method: 'POST',
       body: forwardFormData,
+      headers
     });
 
     const responseStatus = response.status;

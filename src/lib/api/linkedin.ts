@@ -24,11 +24,22 @@ export const uploadLinkedInConnections = async (contactId: string, file: File): 
       console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
     }
     
+    // Get current user session for authentication
+    const { data: { session } } = await supabase.auth.getSession();
+    const authToken = session?.access_token;
+    
+    if (!authToken) {
+      console.warn("No authentication token available");
+    }
+    
     // Call our secure Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('linkedin-import/' + contactId, {
       method: 'POST',
       body: formData,
       // Don't set Content-Type here; browser will set it with boundary for multipart/form-data
+      headers: authToken ? { 
+        'Authorization': `Bearer ${authToken}` 
+      } : undefined,
     });
     
     if (error) {

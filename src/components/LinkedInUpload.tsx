@@ -10,6 +10,7 @@ import ActionButtons from "./linkedin/ActionButtons";
 import HelpText from "./linkedin/HelpText";
 import { uploadLinkedInConnections } from "@/lib/api";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LinkedInUploadProps {
   contactId: string;
@@ -54,6 +55,12 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({ contactId, onComplete, 
     setUploading(true);
     setUploadError(null);
     
+    // Check if user is authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.warn("No active session found. This may cause authentication issues.");
+    }
+    
     // Simulate progress
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => {
@@ -77,8 +84,20 @@ const LinkedInUpload: React.FC<LinkedInUploadProps> = ({ contactId, onComplete, 
     } catch (error) {
       clearInterval(progressInterval);
       console.error("Error uploading LinkedIn connections:", error);
-      setUploadError(error instanceof Error ? error.message : "Unknown error occurred");
-      toast.error("Failed to upload LinkedIn connections");
+      
+      let errorMessage = "Failed to upload LinkedIn connections";
+      
+      // Check for specific JWT error
+      if (error instanceof Error) {
+        if (error.message.includes("Invalid JWT") || error.message.includes("401")) {
+          errorMessage = "Authentication error: Please log in and try again";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setUploadError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }
