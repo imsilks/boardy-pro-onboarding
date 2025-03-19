@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { getCronofyAuthUrl, isUrlReachable, formatPhoneNumber } from "@/lib/api";
 import { fetchContactByPhoneSecure } from "@/api/contact-lookup";
@@ -6,11 +7,21 @@ import { useFadeIn } from "@/lib/animations";
 import HeaderSection from "@/components/HeaderSection";
 import PhoneFormSection from "@/components/PhoneFormSection";
 import { useParams } from "react-router-dom";
+import { useContactId } from "@/hooks/useContactId";
 
 const Index = () => {
-  // Get teamSlug from route params
+  // Get teamSlug from route params and useContactId hook
   const params = useParams();
+  const { updateTeamSlug } = useContactId();
   const teamSlug = params.teamSlug;
+
+  // Capture teamSlug on initial landing
+  useEffect(() => {
+    if (teamSlug) {
+      console.log("Found teamSlug in URL parameters on Index page:", teamSlug);
+      updateTeamSlug(teamSlug);
+    }
+  }, [teamSlug, updateTeamSlug]);
 
   // State for phone validation and lookup
   const [loading, setLoading] = useState(false);

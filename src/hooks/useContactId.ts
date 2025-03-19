@@ -16,6 +16,16 @@ export function useContactId() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Store the current path in sessionStorage to track entry point
+    const currentPath = location.pathname;
+    const storedEntryPath = sessionStorage.getItem("boardyEntryPath");
+    
+    if (!storedEntryPath) {
+      // This is the first page the user is visiting
+      sessionStorage.setItem("boardyEntryPath", currentPath);
+      console.log("Stored initial entry path:", currentPath);
+    }
+    
     // Check for teamSlug in URL params first
     const urlTeamSlug = params.teamSlug;
     
@@ -101,6 +111,11 @@ export function useContactId() {
     }
   };
 
+  // Get the original entry path (useful for knowing where the user started)
+  const getEntryPath = (): string | null => {
+    return sessionStorage.getItem("boardyEntryPath");
+  };
+
   return {
     contactId,
     teamName,
@@ -108,6 +123,7 @@ export function useContactId() {
     getContactId,
     updateContactId,
     getTeamSlug,
-    updateTeamSlug
+    updateTeamSlug,
+    getEntryPath
   };
 }
