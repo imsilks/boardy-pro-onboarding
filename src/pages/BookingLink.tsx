@@ -17,12 +17,19 @@ const BookingLink = () => {
   const location = useLocation();
   const params = useParams();
   
-  // Get teamSlug from both URL params and session storage
-  const { contactId: storedContactId, teamName, getTeamSlug } = useContactId();
+  // Get contactId and teamSlug from useContactId hook
+  const { 
+    contactId: storedContactId, 
+    teamName, 
+    getContactId, 
+    getTeamSlug,
+    updateContactId 
+  } = useContactId();
   
   const [bookingLink, setBookingLink] = useState("");
   const [contactId, setContactId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [teamSlug, setTeamSlug] = useState<string | null>(null);
 
   // Animation states
   const fadeInTitle = useFadeIn("down", 100);
@@ -36,6 +43,8 @@ const BookingLink = () => {
     if (id) {
       console.log("Found contactId in URL:", id);
       setContactId(id);
+      // Also update it in the hook's state and sessionStorage
+      updateContactId(id);
     } else if (storedContactId) {
       console.log("Using contactId from useContactId hook:", storedContactId);
       setContactId(storedContactId);
@@ -43,12 +52,26 @@ const BookingLink = () => {
       console.warn("No contactId found in URL or through useContactId");
       toast.error("Contact information is missing");
     }
-  }, [location, storedContactId]);
+
+    // Get and store teamSlug
+    const urlTeamSlug = params.teamSlug;
+    if (urlTeamSlug) {
+      console.log("Found teamSlug in URL parameters:", urlTeamSlug);
+      setTeamSlug(urlTeamSlug);
+    } else {
+      const storedTeamSlug = getTeamSlug();
+      console.log("Retrieved teamSlug from storage:", storedTeamSlug);
+      setTeamSlug(storedTeamSlug);
+    }
+  }, [location, storedContactId, params.teamSlug, updateContactId, getTeamSlug]);
 
   const handleSubmitBookingLink = async () => {
-    // Ensure we always try to get the latest contactId
-    const idToUse = contactId || storedContactId;
-    if (!idToUse) {
+    // First get the latest contactId using multiple sources
+    const finalContactId = contactId || getContactId() || storedContactId;
+    
+    console.log("Submitting with contactId:", finalContactId);
+    
+    if (!finalContactId) {
       toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
     }
@@ -66,7 +89,7 @@ const BookingLink = () => {
     setSaving(true);
     try {
       if (bookingLink) {
-        console.log(`Saving booking link: ${bookingLink} for contact: ${idToUse}`);
+        console.log(`Saving booking link: ${bookingLink} for contact: ${finalContactId}`);
 
         // Call the API to store the booking link
         const response = await fetch(BOOKING_LINK_API_ENDPOINT, {
@@ -75,13 +98,15 @@ const BookingLink = () => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            contactId: idToUse,
+            contactId: finalContactId,
             calendarBookingLink: bookingLink
           })
         });
         
         if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
+          const errorText = await response.text();
+          console.error("API error response:", errorText);
+          throw new Error(`API error: ${response.status} - ${errorText}`);
         }
         
         toast.success("Booking link saved successfully!");
@@ -89,13 +114,15 @@ const BookingLink = () => {
         console.log("No booking link provided, skipping save operation");
       }
 
-      // Get the teamSlug either from the URL params or from sessionStorage
-      const teamSlug = params.teamSlug || getTeamSlug();
+      // Get the final teamSlug to use in navigation
+      const finalTeamSlug = teamSlug || getTeamSlug();
       
       // Include the teamSlug in the navigation if it exists
-      const path = teamSlug ? `/${teamSlug}/join-team` : `/join-team`;
+      const path = finalTeamSlug ? `/${finalTeamSlug}/join-team` : `/join-team`;
+      console.log(`Navigating to: ${path}?contactId=${finalContactId}`);
+      
       setTimeout(() => {
-        navigate(`${path}?contactId=${idToUse}`);
+        navigate(`${path}?contactId=${finalContactId}`);
       }, 500);
     } catch (error) {
       console.error("Error saving booking link:", error);
@@ -108,17 +135,18 @@ const BookingLink = () => {
   const handleSkip = () => {
     toast.info("Skipped adding a booking link");
 
-    // Ensure we always try to get the latest contactId
-    const idToUse = contactId || storedContactId;
-    
-    // Get the teamSlug either from the URL params or from sessionStorage
-    const teamSlug = params.teamSlug || getTeamSlug();
+    // Get the final contactId and teamSlug for navigation
+    const finalContactId = contactId || getContactId() || storedContactId;
+    const finalTeamSlug = teamSlug || getTeamSlug();
     
     // Include the teamSlug in the navigation if it exists
-    const path = teamSlug ? `/${teamSlug}/join-team` : `/join-team`;
-    if (idToUse) {
-      navigate(`${path}?contactId=${idToUse}`);
+    const path = finalTeamSlug ? `/${finalTeamSlug}/join-team` : `/join-team`;
+    
+    if (finalContactId) {
+      console.log(`Skipping to: ${path}?contactId=${finalContactId}`);
+      navigate(`${path}?contactId=${finalContactId}`);
     } else {
+      console.log(`Skipping to: ${path} (without contactId)`);
       navigate(path);
     }
   };
