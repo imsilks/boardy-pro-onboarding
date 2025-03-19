@@ -53,8 +53,8 @@ const OnboardingComplete = () => {
     }
   };
   
-  // Get the team name for display
-  const displayTeamName = teamName ? ` for ${teamName}` : '';
+  // Get the team name for display - ensure it's capitalized
+  const displayTeamName = teamName ? ` for ${teamName.charAt(0).toUpperCase() + teamName.slice(1)}` : '';
   
   return <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-slate-50">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
@@ -80,7 +80,6 @@ const OnboardingComplete = () => {
                   </h2>
                   <p className="text-gray-600 mb-6">
                     Your Boardy Pro account{displayTeamName} has been successfully set up and activated.
-                    {contactId && <span className="text-xs block mt-2 text-gray-400">ID: {contactId}</span>}
                   </p>
                 </div>
               </div>}

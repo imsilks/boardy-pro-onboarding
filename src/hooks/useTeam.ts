@@ -13,6 +13,11 @@ export function useTeam(contactId: string | null, slug: string) {
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   
+  // Helper function to capitalize team names
+  const capitalizeTeamName = (name: string): string => {
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
+  
   useEffect(() => {
     if (slug) {
       fetchTeamData(slug);
@@ -62,7 +67,7 @@ export function useTeam(contactId: string | null, slug: string) {
           
           teamData = {
             id: teamId || slug,
-            name: teamName || slug
+            name: capitalizeTeamName(teamName || slug)
           };
           
           console.log("Extracted team data from text:", teamData);
@@ -70,7 +75,7 @@ export function useTeam(contactId: string | null, slug: string) {
           // If we can't parse the response, create a fallback team object
           teamData = {
             id: slug,
-            name: slug
+            name: capitalizeTeamName(slug)
           };
         }
       }
@@ -78,14 +83,14 @@ export function useTeam(contactId: string | null, slug: string) {
       if (teamData && (teamData.id || teamData.name)) {
         setTeam({
           id: teamData.id || slug,
-          name: teamData.name || slug,
+          name: capitalizeTeamName(teamData.name || slug),
           description: teamData.description || "Join your team to collaborate and share your network."
         });
       } else {
         console.log("No team found for this slug, using slug as fallback");
         setTeam({
           id: slug,
-          name: slug,
+          name: capitalizeTeamName(slug),
           description: "Join your team to collaborate and share your network."
         });
       }
@@ -96,7 +101,7 @@ export function useTeam(contactId: string | null, slug: string) {
       // Create a fallback team object using the slug
       setTeam({
         id: slug,
-        name: slug,
+        name: capitalizeTeamName(slug),
         description: "Join your team to collaborate and share your network."
       });
     } finally {

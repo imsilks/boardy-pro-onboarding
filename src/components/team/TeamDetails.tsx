@@ -18,6 +18,9 @@ interface TeamDetailsProps {
 }
 
 const TeamDetails = ({ team, joining, onJoin, onSkip, onBack }: TeamDetailsProps) => {
+  // Ensure team name is capitalized
+  const displayTeamName = team.name.charAt(0).toUpperCase() + team.name.slice(1);
+  
   return (
     <div className="py-6 flex flex-col items-center justify-center space-y-6">
       <div className="text-blue-500 mb-2">
@@ -26,11 +29,11 @@ const TeamDetails = ({ team, joining, onJoin, onSkip, onBack }: TeamDetailsProps
       
       <div className="w-full space-y-4">
         <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold">{team.name}</h2>
+          <h2 className="text-2xl font-bold">{displayTeamName}</h2>
           {team.description && <p className="text-gray-600">{team.description}</p>}
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-4">
             <p className="text-blue-800">
-              Do you want to join the {team.name} team? This will allow you to share your network with your team and to get access to your team's network too.
+              Do you want to join the {displayTeamName} team? This will allow you to share your network with your team and to get access to your team's network too.
             </p>
           </div>
         </div>

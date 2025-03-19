@@ -43,9 +43,8 @@ const RedirectStatus: React.FC<RedirectStatusProps> = ({
         {contact && (
           <div className="bg-blue-50 border border-blue-200 rounded-md p-4 w-full mb-4">
             <h3 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
-              <User size={16} className="mr-1" /> Contact Information
+              <User size={16} className="mr-1" /> Account Found
             </h3>
-            <p className="text-xs text-blue-700">ID: {contact.id}</p>
             {contact.fullName && <p className="text-xs text-blue-700">Name: {contact.fullName}</p>}
             <p className="text-xs text-blue-700 flex items-center mt-1">
               <PhoneIcon size={14} className="mr-1" />
@@ -59,7 +58,7 @@ const RedirectStatus: React.FC<RedirectStatusProps> = ({
             onClick={onRetry}
             className="w-full"
           >
-            <RefreshCw size={16} />
+            <RefreshCw size={16} className="mr-1" />
             Retry Connection
           </Button>
           <Button 
@@ -84,18 +83,17 @@ const RedirectStatus: React.FC<RedirectStatusProps> = ({
       </p>
       
       {contact && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4 w-full mt-2">
-          <h3 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
-            <User size={16} className="mr-1" /> Account Found
-          </h3>
-          <p className="text-xs text-blue-700">ID: {contact.id}</p>
-          {contact.fullName && <p className="text-xs text-blue-700">Name: {contact.fullName}</p>}
-          <p className="text-xs text-blue-700 flex items-center mt-1">
-            <PhoneIcon size={14} className="mr-1" />
-            <span>{lookupPhone}</span>
-          </p>
-        </div>
-      )}
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4 w-full mt-2">
+            <h3 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
+              <User size={16} className="mr-1" /> Account Found
+            </h3>
+            {contact.fullName && <p className="text-xs text-blue-700">Name: {contact.fullName}</p>}
+            <p className="text-xs text-blue-700 flex items-center mt-1">
+              <PhoneIcon size={14} className="mr-1" />
+              <span>{lookupPhone}</span>
+            </p>
+          </div>
+        )}
     </div>
   );
 };
