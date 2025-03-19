@@ -11,7 +11,7 @@ const UploadProgress: React.FC<UploadProgressProps> = ({ isUploading, progress }
   if (!isUploading) return null;
   
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 animate-fade-in">
       <div className="flex justify-between text-xs text-gray-500">
         <span>Uploading...</span>
         <span>{progress.toFixed(0)}%</span>

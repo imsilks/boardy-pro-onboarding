@@ -58,7 +58,7 @@ const RedirectStatus: React.FC<RedirectStatusProps> = ({
             onClick={onRetry}
             className="w-full"
           >
-            <RefreshCw size={16} className="mr-1" />
+            <RefreshCw size={16} className="mr-2" />
             Retry Connection
           </Button>
           <Button 
@@ -75,7 +75,7 @@ const RedirectStatus: React.FC<RedirectStatusProps> = ({
 
   return (
     <div className="py-6 flex flex-col items-center justify-center space-y-4 animate-fade-in">
-      <div className="text-primary">
+      <div className="text-primary mb-2">
         <LoadingSpinner size="lg" variant="refresh" className="text-blue-500" />
       </div>
       <p className="text-gray-700 text-center font-medium">

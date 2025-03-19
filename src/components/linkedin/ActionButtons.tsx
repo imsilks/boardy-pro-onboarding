@@ -57,7 +57,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           disabled={isUploading}
         >
           Skip this step
-          <ArrowRight size={16} className="ml-1" />
+          <ArrowRight size={16} className="ml-2" />
         </Button>
       </div>
       

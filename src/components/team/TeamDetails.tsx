@@ -51,7 +51,7 @@ const TeamDetails = ({ team, joining, onJoin, onSkip, onBack }: TeamDetailsProps
             </Button>
           )}
           
-          <Button variant="outline" onClick={onSkip} className="w-full bg-slate-400 hover:bg-slate-300 text-slate-50">
+          <Button variant="outline" onClick={onSkip} className="w-full bg-slate-400 hover:bg-slate-300 text-white">
             Skip this step
           </Button>
           
