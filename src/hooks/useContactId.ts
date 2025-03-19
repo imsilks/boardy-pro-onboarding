@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -53,28 +53,28 @@ export function useContactId() {
       }
     }
 
-    // Get contactId from URL query params
+    // Get contactId from URL query params first
     const queryParams = new URLSearchParams(location.search);
     const id = queryParams.get("contactId");
     
+    // Next try to get from sessionStorage if not in URL
+    const storedId = sessionStorage.getItem("boardyContactId");
+    
+    console.log(`ContactId in URL: ${id}, in sessionStorage: ${storedId}`);
+    
     if (id) {
-      console.log("Found contactId in URL:", id);
+      console.log("Found contactId in URL, updating state and storage:", id);
       setContactId(id);
-      // Store in sessionStorage for subsequent pages
+      // Store in sessionStorage for subsequent pages or after redirects
       sessionStorage.setItem("boardyContactId", id);
-      console.log("Stored/updated contactId in sessionStorage:", id);
+    } else if (storedId) {
+      console.log("Retrieved contactId from sessionStorage:", storedId);
+      setContactId(storedId);
     } else {
-      // Try to get from sessionStorage if not in URL
-      const storedId = sessionStorage.getItem("boardyContactId");
-      if (storedId) {
-        console.log("Retrieved contactId from sessionStorage:", storedId);
-        setContactId(storedId);
-      } else {
-        console.warn("No contactId found in URL or sessionStorage");
-        // Only show toast error if we're not on the homepage or success page
-        if (location.pathname !== '/' && location.pathname !== '/success') {
-          toast.error("Contact information is missing");
-        }
+      console.warn("No contactId found in URL or sessionStorage");
+      // Only show toast error if we're not on the homepage or success page
+      if (location.pathname !== '/' && location.pathname !== '/success') {
+        toast.error("Contact information is missing");
       }
     }
     
@@ -82,39 +82,43 @@ export function useContactId() {
   }, [location, params]);
 
   // Function to get the current contactId (from state or session storage)
-  const getContactId = (): string | null => {
-    if (contactId) return contactId;
-    return sessionStorage.getItem("boardyContactId");
-  };
+  const getContactId = useCallback((): string | null => {
+    // Always prioritize session storage for most reliable value
+    const storedId = sessionStorage.getItem("boardyContactId");
+    if (storedId) return storedId;
+    return contactId;
+  }, [contactId]);
 
   // Function to update the contactId in both state and session storage
-  const updateContactId = (id: string) => {
+  const updateContactId = useCallback((id: string) => {
     if (id) {
       setContactId(id);
       sessionStorage.setItem("boardyContactId", id);
-      console.log("Updated contactId:", id);
+      console.log("Updated contactId in both state and sessionStorage:", id);
     }
-  };
+  }, []);
 
   // Function to get the current teamSlug (from state or session storage)
-  const getTeamSlug = (): string | null => {
-    if (teamName) return teamName;
-    return sessionStorage.getItem("boardyTeamSlug");
-  };
+  const getTeamSlug = useCallback((): string | null => {
+    // Always prioritize session storage for most reliable value
+    const storedSlug = sessionStorage.getItem("boardyTeamSlug");
+    if (storedSlug) return storedSlug;
+    return teamName;
+  }, [teamName]);
 
   // Function to update the teamSlug in both state and session storage
-  const updateTeamSlug = (slug: string) => {
+  const updateTeamSlug = useCallback((slug: string) => {
     if (slug) {
       setTeamName(slug);
       sessionStorage.setItem("boardyTeamSlug", slug);
-      console.log("Updated teamSlug:", slug);
+      console.log("Updated teamSlug in both state and sessionStorage:", slug);
     }
-  };
+  }, []);
 
   // Get the original entry path (useful for knowing where the user started)
-  const getEntryPath = (): string | null => {
+  const getEntryPath = useCallback((): string | null => {
     return sessionStorage.getItem("boardyEntryPath");
-  };
+  }, []);
 
   return {
     contactId,

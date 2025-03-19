@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -14,7 +15,7 @@ const Success = () => {
   const params = useParams();
   const teamSlug = params.teamSlug;
   
-  const { getTeamSlug } = useContactId();
+  const { getTeamSlug, updateContactId } = useContactId();
   
   const [contactId, setContactId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
@@ -24,48 +25,52 @@ const Success = () => {
   const fadeInCard = useFadeIn("up", 300);
 
   useEffect(() => {
+    // First check URL parameters
     const searchParams = new URLSearchParams(location.search);
     const id = searchParams.get("contactId");
     const fromCronofy = searchParams.get("fromCronofy");
     
+    // Also get from sessionStorage to compare
+    const storedId = sessionStorage.getItem("boardyContactId");
+    console.log("Success page: URL contactId:", id);
+    console.log("Success page: Stored contactId:", storedId);
+    
     if (id) {
-      console.log("Found contactId in URL:", id);
+      console.log("Found contactId in URL, using it:", id);
       setContactId(id);
+      // Also update session storage to ensure consistency
       sessionStorage.setItem("boardyContactId", id);
+      // Update the contactId in the hook's state to ensure app-wide consistency
+      updateContactId(id);
       console.log("Stored/updated contactId in sessionStorage:", id);
+    } else if (storedId) {
+      console.log("No contactId in URL, using stored value:", storedId);
+      setContactId(storedId);
+      // Update the contactId in the hook's state to ensure app-wide consistency
+      updateContactId(storedId);
     } else {
-      const storedId = sessionStorage.getItem("boardyContactId");
-      if (storedId) {
-        console.log("Retrieved contactId from sessionStorage:", storedId);
-        setContactId(storedId);
-      } else {
-        console.warn("No contactId found in URL or sessionStorage");
-        toast.error("Contact information is missing");
-      }
+      console.warn("No contactId found in URL or sessionStorage");
+      toast.error("Contact information is missing");
     }
     
     if (fromCronofy === "true") {
       toast.success("Calendar connected successfully! Welcome back.");
     }
-  }, [location]);
+  }, [location, updateContactId]);
 
   const handleConnectCalendar = async () => {
-    let idToUse = contactId;
-    
-    if (!idToUse) {
-      idToUse = sessionStorage.getItem("boardyContactId");
-      console.log("Retrieved contactId from sessionStorage for calendar connection:", idToUse);
-      
-      if (idToUse) {
-        setContactId(idToUse); // Update state if we got it from session storage
-      }
-    }
+    // Always retrieve directly from sessionStorage first for reliability
+    const idToUse = sessionStorage.getItem("boardyContactId") || contactId;
+    console.log("Connecting calendar with contactId (from storage or state):", idToUse);
     
     if (!idToUse) {
       console.error("No contactId available for calendar connection");
       toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
     }
+    
+    // Update state with the value we're using
+    setContactId(idToUse); 
     
     setConnecting(true);
     setConnectionError(false);
@@ -94,7 +99,11 @@ const Success = () => {
   };
 
   const handleContinue = () => {
-    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    // Always prioritize session storage for maximum reliability across redirects
+    const storedId = sessionStorage.getItem("boardyContactId");
+    const idToUse = storedId || contactId;
+    
+    console.log("Continuing with contactId (from storage or state):", idToUse);
     
     if (!idToUse) {
       toast.error("Contact ID is missing. Please try again from the beginning.");
