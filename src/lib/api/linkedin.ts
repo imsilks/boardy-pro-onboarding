@@ -24,10 +24,11 @@ export const uploadLinkedInConnections = async (contactId: string, file: File): 
       console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
     }
     
-    // Call our secure Supabase Edge Function instead of the external API directly
+    // Call our secure Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('linkedin-import/' + contactId, {
       method: 'POST',
       body: formData,
+      // Don't set Content-Type here; browser will set it with boundary for multipart/form-data
     });
     
     if (error) {

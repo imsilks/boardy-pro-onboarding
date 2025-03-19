@@ -26,7 +26,7 @@ serve(async (req) => {
 
     console.log(`Processing LinkedIn import for contact ID: ${contactId}`);
 
-    // We need to get the file from the request
+    // Get the form data from the request
     const formData = await req.formData();
     const file = formData.get('file');
 
@@ -44,25 +44,26 @@ serve(async (req) => {
     const importUrl = `${LINKEDIN_IMPORT_BASE_URL}/${contactId}`;
     console.log(`Forwarding to: ${importUrl}`);
 
+    // Important: Don't manually set Content-Type for multipart/form-data requests
+    // The browser/fetch API will automatically set it with the proper boundary
     const response = await fetch(importUrl, {
       method: 'POST',
       body: forwardFormData,
-      // Note: We do not manually set Content-Type for multipart/form-data
     });
 
-    // Get the response from the external API
     const responseStatus = response.status;
     console.log(`External API response status: ${responseStatus}`);
 
-    // Forward the response back to the client
+    // Try to parse the response as JSON first
     let responseBody;
     try {
       responseBody = await response.json();
       console.log("Response body:", responseBody);
     } catch (e) {
-      // If the response isn't JSON, get the text instead
-      responseBody = { message: await response.text() };
-      console.log("Response text:", responseBody.message);
+      // If JSON parsing fails, get the response as text
+      const responseText = await response.text();
+      console.log("Response text:", responseText);
+      responseBody = { message: responseText };
     }
 
     return new Response(

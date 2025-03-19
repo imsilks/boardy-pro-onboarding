@@ -11,21 +11,36 @@ interface FileUploadAreaProps {
 const FileUploadArea: React.FC<FileUploadAreaProps> = ({ file, onFileSelect }) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      if (selectedFile.type !== "text/csv" && !selectedFile.name.endsWith(".csv")) {
-        toast.error("Please upload a CSV file");
-        return;
-      }
-      
-      // Create a new File object with the name "Connections.csv" as required
+    if (!selectedFile) {
+      return;
+    }
+    
+    console.log("Original file selected:", selectedFile.name, selectedFile.type);
+    
+    // Validate file type
+    if (selectedFile.type !== "text/csv" && 
+        !selectedFile.name.endsWith(".csv") && 
+        !selectedFile.type.includes("excel") && 
+        !selectedFile.type.includes("spreadsheet")) {
+      toast.error("Please upload a CSV file");
+      return;
+    }
+    
+    try {
+      // Create a new File object with the name "Connections.csv" as required by the API
       const renamedFile = new File(
         [selectedFile], 
         "Connections.csv", 
         { type: "text/csv" }
       );
       
+      console.log("Renamed file:", renamedFile.name, renamedFile.type);
+      
       onFileSelect(renamedFile);
       toast.success("File selected and will be uploaded as Connections.csv");
+    } catch (error) {
+      console.error("Error processing file:", error);
+      toast.error("Failed to process the selected file");
     }
   };
 
