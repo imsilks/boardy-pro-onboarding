@@ -106,12 +106,20 @@ export function useTeam(contactId: string | null, slug: string) {
 
   const joinTeam = async (contactId: string) => {
     if (!team) {
+      console.error("Cannot join team: No team data available");
       return false;
     }
     
+    if (!contactId) {
+      console.error("Cannot join team: No contact ID provided");
+      return false;
+    }
+    
+    console.log(`Starting join team process: ContactID=${contactId}, TeamID=${team.id}, TeamName=${team.name}`);
     setJoining(true);
+    
     try {
-      console.log(`Joining team: ${team.name} (${team.id}) for contact: ${contactId}`);
+      console.log("Sending API request to join team...");
 
       // Call the Make.com webhook to update the user's contact record with the teamId
       const updateResponse = await fetch("https://hook.us1.make.com/cpph5cd694479su4mdho8wju163tau6e", {
@@ -125,13 +133,26 @@ export function useTeam(contactId: string | null, slug: string) {
         })
       });
 
+      console.log(`API response status: ${updateResponse.status}`);
+      
+      // Get response text for debugging
+      const responseText = await updateResponse.text();
+      console.log("Raw API response:", responseText);
+
       if (!updateResponse.ok) {
-        throw new Error(`Failed to update contact with team ID: ${updateResponse.status}`);
+        throw new Error(`Failed to update contact with team ID: ${updateResponse.status} - ${responseText}`);
       }
 
-      const updateData = await updateResponse.json();
-      console.log("Contact record updated with team ID:", updateData);
+      let updateData;
+      try {
+        // Try to parse JSON response if available
+        updateData = JSON.parse(responseText);
+        console.log("Parsed API response:", updateData);
+      } catch (parseError) {
+        console.log("Response is not JSON format:", responseText);
+      }
 
+      console.log(`Successfully joined team: ${team.name}`);
       toast.success(`You've joined ${team.name}!`);
       return true;
     } catch (error) {

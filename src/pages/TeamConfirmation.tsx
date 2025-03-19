@@ -18,7 +18,8 @@ const TeamConfirmation = () => {
   
   const {
     contactId,
-    loading: contactLoading
+    loading: contactLoading,
+    getContactId
   } = useContactId();
   
   // Pass the teamSlug directly to useTeam instead of teamName
@@ -31,30 +32,63 @@ const TeamConfirmation = () => {
   const fadeInCard = useFadeIn("up", 300);
 
   const handleJoinTeam = async () => {
-    if (!contactId) {
+    // Get the latest contactId using multiple sources to ensure we have it
+    const finalContactId = contactId || getContactId();
+    
+    console.log("Join team button clicked. Contact ID:", finalContactId);
+    
+    if (!finalContactId) {
+      console.error("Missing contact information for join team");
       toast.error("Missing contact information");
       return;
     }
     
-    const success = await joinTeam(contactId);
-    
-    if (success) {
-      // Navigate to onboarding complete page with path preserving team slug if it exists
-      setTimeout(() => {
-        const teamPath = teamSlug ? `/${teamSlug}` : '';
-        navigate(`${teamPath}/onboarding-complete?contactId=${contactId}`);
-      }, 500);
+    try {
+      console.log(`Attempting to join team with contactId: ${finalContactId}`);
+      const success = await joinTeam(finalContactId);
+      
+      if (success) {
+        console.log("Join team successful, preparing for navigation");
+        // Navigate to onboarding complete page with path preserving team slug if it exists
+        setTimeout(() => {
+          try {
+            const teamPath = teamSlug ? `/${teamSlug}` : '';
+            const navigatePath = `${teamPath}/onboarding-complete?contactId=${finalContactId}`;
+            console.log(`Navigating to: ${navigatePath}`);
+            navigate(navigatePath);
+          } catch (navError) {
+            console.error("Navigation error:", navError);
+            // Fallback navigation if the path with teamSlug fails
+            navigate(`/onboarding-complete?contactId=${finalContactId}`);
+          }
+        }, 500);
+      } else {
+        console.log("Join team returned false, not navigating");
+      }
+    } catch (error) {
+      console.error("Error in handleJoinTeam:", error);
+      toast.error("An error occurred while joining the team");
     }
   };
 
   const handleSkip = () => {
     toast.info("Skipped joining a team");
-    // Preserve team slug in path if it exists
-    const teamPath = teamSlug ? `/${teamSlug}` : '';
-    navigate(`${teamPath}/onboarding-complete${contactId ? `?contactId=${contactId}` : ''}`);
+    try {
+      // Preserve team slug in path if it exists
+      const teamPath = teamSlug ? `/${teamSlug}` : '';
+      const contactParam = contactId ? `?contactId=${contactId}` : '';
+      const navigatePath = `${teamPath}/onboarding-complete${contactParam}`;
+      console.log(`Skipping team join, navigating to: ${navigatePath}`);
+      navigate(navigatePath);
+    } catch (navError) {
+      console.error("Navigation error during skip:", navError);
+      // Fallback navigation
+      navigate('/onboarding-complete');
+    }
   };
 
   const handleBack = () => {
+    console.log("Going back to previous page");
     navigate(-1);
   };
 
