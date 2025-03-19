@@ -151,7 +151,6 @@ const Success = () => {
                 </h2>
                 <p className="text-gray-600 mb-6">
                   We can now access your calendar to schedule meetings and avoid conflicts.
-                  {contactId && <span className="text-xs block mt-2 text-gray-400">ID: {contactId}</span>}
                 </p>
               </div>
               
