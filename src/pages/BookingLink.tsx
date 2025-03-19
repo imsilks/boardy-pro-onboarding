@@ -5,7 +5,7 @@ import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ArrowRight, CalendarCheck, ExternalLink } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarCheck } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { useContactId } from "@/hooks/useContactId";
@@ -184,10 +184,14 @@ const BookingLink = () => {
                 <div className="space-y-2">
                   <Label htmlFor="booking-link">Your Calendar Booking Link</Label>
                   <div className="flex items-center space-x-2">
-                    <div className="relative flex-grow">
-                      <Input id="booking-link" type="url" placeholder="https://calendly.com/your-link" value={bookingLink} onChange={e => setBookingLink(e.target.value)} className="pr-10" />
-                      <ExternalLink size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    </div>
+                    <Input 
+                      id="booking-link" 
+                      type="url" 
+                      placeholder="https://calendly.com/your-link" 
+                      value={bookingLink} 
+                      onChange={e => setBookingLink(e.target.value)} 
+                      className="w-full" 
+                    />
                   </div>
                   <p className="text-xs text-gray-500">
                     Examples: Calendly, Cal.com, or other booking service
@@ -203,7 +207,7 @@ const BookingLink = () => {
                       Submit
                     </Button>}
                   
-                  <Button variant="outline" onClick={handleSkip} className="w-full text-slate-50 bg-slate-400 hover:bg-slate-300">
+                  <Button variant="outline" onClick={handleSkip} className="w-full text-white bg-slate-400 hover:bg-slate-300">
                     <ArrowRight size={16} className="mr-2" />
                     Skip This Step
                   </Button>
