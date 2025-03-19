@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, ArrowRight, CalendarCheck, ExternalLink } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useContactId } from "@/hooks/useContactId";
 
 const BOOKING_LINK_API_ENDPOINT = "https://hook.us1.make.com/lilxxslc2dg7l3kqvri9ky4a4fjodsdl";
 
@@ -15,7 +16,9 @@ const BookingLink = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
-  const teamSlug = params.teamSlug;
+  
+  // Get teamSlug from both URL params and session storage
+  const { contactId: storedContactId, teamName, getTeamSlug } = useContactId();
   
   const [bookingLink, setBookingLink] = useState("");
   const [contactId, setContactId] = useState<string | null>(null);
@@ -26,32 +29,25 @@ const BookingLink = () => {
   const fadeInCard = useFadeIn("up", 300);
 
   useEffect(() => {
-    // Get contactId from URL query params or session storage
+    // Get contactId from URL query params or from the useContactId hook
     const searchParams = new URLSearchParams(location.search);
     const id = searchParams.get("contactId");
     
     if (id) {
       console.log("Found contactId in URL:", id);
       setContactId(id);
-      // Store in sessionStorage for subsequent pages
-      sessionStorage.setItem("boardyContactId", id);
-      console.log("Stored/updated contactId in sessionStorage:", id);
+    } else if (storedContactId) {
+      console.log("Using contactId from useContactId hook:", storedContactId);
+      setContactId(storedContactId);
     } else {
-      // Try to get from sessionStorage if not in URL
-      const storedId = sessionStorage.getItem("boardyContactId");
-      if (storedId) {
-        console.log("Retrieved contactId from sessionStorage:", storedId);
-        setContactId(storedId);
-      } else {
-        console.warn("No contactId found in URL or sessionStorage");
-        toast.error("Contact information is missing");
-      }
+      console.warn("No contactId found in URL or through useContactId");
+      toast.error("Contact information is missing");
     }
-  }, [location]);
+  }, [location, storedContactId]);
 
   const handleSubmitBookingLink = async () => {
-    // Ensure we always try to get the latest contactId from sessionStorage as fallback
-    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    // Ensure we always try to get the latest contactId
+    const idToUse = contactId || storedContactId;
     if (!idToUse) {
       toast.error("Contact ID is missing. Please try again from the beginning.");
       return;
@@ -93,6 +89,9 @@ const BookingLink = () => {
         console.log("No booking link provided, skipping save operation");
       }
 
+      // Get the teamSlug either from the URL params or from sessionStorage
+      const teamSlug = params.teamSlug || getTeamSlug();
+      
       // Include the teamSlug in the navigation if it exists
       const path = teamSlug ? `/${teamSlug}/join-team` : `/join-team`;
       setTimeout(() => {
@@ -109,8 +108,11 @@ const BookingLink = () => {
   const handleSkip = () => {
     toast.info("Skipped adding a booking link");
 
-    // Ensure we always try to get the latest contactId from sessionStorage as fallback
-    const idToUse = contactId || sessionStorage.getItem("boardyContactId");
+    // Ensure we always try to get the latest contactId
+    const idToUse = contactId || storedContactId;
+    
+    // Get the teamSlug either from the URL params or from sessionStorage
+    const teamSlug = params.teamSlug || getTeamSlug();
     
     // Include the teamSlug in the navigation if it exists
     const path = teamSlug ? `/${teamSlug}/join-team` : `/join-team`;
