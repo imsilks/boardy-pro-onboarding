@@ -71,11 +71,18 @@ export function useContactId() {
       console.log("Retrieved contactId from sessionStorage:", storedId);
       setContactId(storedId);
     } else {
-      console.warn("No contactId found in URL or sessionStorage");
-      // Only show toast error if we're not on the homepage, index page, or success page
-      // This prevents the error from showing when users first land on the phone entry page
-      if (location.pathname !== '/' && 
-          location.pathname !== '/index' && 
+      console.log("No contactId found in URL or sessionStorage");
+      
+      // Determine if we're on a page that should NOT show the error toast
+      const isInitialPhonePage = 
+        location.pathname === '/' || 
+        location.pathname === '/index' || 
+        location.pathname === '' ||
+        // Check if the pathname is just a team slug (e.g., /creandum)
+        (location.pathname.split('/').filter(Boolean).length === 1 && !location.pathname.includes('success'));
+      
+      // Only show toast error on pages that require a contactId and aren't entry points
+      if (!isInitialPhonePage && 
           location.pathname !== '/success' && 
           !location.pathname.endsWith('/join-team')) {
         toast.error("Contact information is missing");
