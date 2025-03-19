@@ -76,7 +76,9 @@ const RedirectStatus: React.FC<RedirectStatusProps> = ({
 
   return (
     <div className="py-6 flex flex-col items-center justify-center space-y-4 animate-fade-in">
-      <LoadingSpinner size="lg" className="text-primary" />
+      <div className="text-primary">
+        <LoadingSpinner size="lg" variant="refresh" className="text-blue-500" />
+      </div>
       <p className="text-gray-700 text-center font-medium">
         Connecting to your calendar...
       </p>
