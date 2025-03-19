@@ -30,6 +30,20 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     console.log(`Authorization header present: ${!!authHeader}`);
     
+    if (!authHeader) {
+      console.error("No Authorization header provided");
+      return new Response(
+        JSON.stringify({ error: "Authentication required", code: 401, message: "Invalid JWT" }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+    }
+    
     // Get the form data from the request
     const formData = await req.formData();
     const file = formData.get('file');
@@ -47,15 +61,14 @@ serve(async (req) => {
     // Forward the request to the external API
     const importUrl = `${LINKEDIN_IMPORT_BASE_URL}/${contactId}`;
     console.log(`Forwarding to: ${importUrl}`);
+    console.log(`Using auth header: ${authHeader}`);
 
-    // Include headers in the request to the external API
-    const headers: HeadersInit = {};
-    if (authHeader) {
-      headers['Authorization'] = authHeader;
-    }
+    // Include the authorization header in the request to the external API
+    const headers: HeadersInit = {
+      'Authorization': authHeader,
+    };
     
     // Important: Don't manually set Content-Type for multipart/form-data requests
-    // The browser/fetch API will automatically set it with the proper boundary
     const response = await fetch(importUrl, {
       method: 'POST',
       body: forwardFormData,
@@ -64,6 +77,25 @@ serve(async (req) => {
 
     const responseStatus = response.status;
     console.log(`External API response status: ${responseStatus}`);
+
+    // If we get a 401, provide a clear error message about authentication
+    if (responseStatus === 401) {
+      console.error("Authentication failed with external API");
+      return new Response(
+        JSON.stringify({ 
+          error: "Authentication error", 
+          code: 401, 
+          message: "Authentication failed with the service. Please log in again."
+        }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+    }
 
     // Try to parse the response as JSON first
     let responseBody;

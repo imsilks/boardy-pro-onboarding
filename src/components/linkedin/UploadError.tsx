@@ -13,10 +13,22 @@ interface UploadErrorProps {
 const UploadError: React.FC<UploadErrorProps> = ({ error, onRetry }) => {
   if (!error) return null;
   
-  const isAuthError = error.includes("Authentication") || error.includes("JWT") || error.includes("401");
+  const isAuthError = error.includes("Authentication") || 
+                      error.includes("JWT") || 
+                      error.includes("401") ||
+                      error.includes("auth") ||
+                      error.includes("log in");
   
   const handleLogin = async () => {
-    // This is a simple redirect to login - in a real app you would integrate with your auth flow
+    // Check if there's already a session before attempting to login
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      console.log("User already has a session, refreshing the page");
+      window.location.reload();
+      return;
+    }
+    
+    console.log("Initiating login flow");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -37,11 +49,13 @@ const UploadError: React.FC<UploadErrorProps> = ({ error, onRetry }) => {
         
         {isAuthError ? (
           <p className="mt-1 text-xs text-red-600">
-            This appears to be an authentication error. You need to be logged in to upload LinkedIn connections.
+            You need to be logged in with a valid account to upload LinkedIn connections. 
+            Your session may have expired or you need to log in again.
           </p>
         ) : (
           <p className="mt-1 text-xs text-red-600">
-            This might be due to a CORS issue or server unavailability. In development mode, you can use the "Simulate Success" option below.
+            This might be due to a CORS issue or server unavailability. In development mode, 
+            you can use the "Simulate Success" option below.
           </p>
         )}
         
@@ -62,7 +76,7 @@ const UploadError: React.FC<UploadErrorProps> = ({ error, onRetry }) => {
               onClick={handleLogin} 
               className="bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-800"
             >
-              <LogIn size={14} className="mr-1" /> Login
+              <LogIn size={14} className="mr-1" /> Login Now
             </Button>
           )}
         </div>

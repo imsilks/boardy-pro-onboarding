@@ -14,6 +14,16 @@ export const uploadLinkedInConnections = async (contactId: string, file: File): 
     console.log(`Uploading LinkedIn connections for contact ID: ${contactId}`);
     console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size}bytes`);
     
+    // Get current user session for authentication
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session || !session.access_token) {
+      console.error("No active session found");
+      throw new Error("Authentication error: Please log in and try again");
+    }
+    
+    console.log("Session found, access token available");
+    
     // Create FormData for multipart/form-data upload
     const formData = new FormData();
     formData.append('file', file);
@@ -24,26 +34,29 @@ export const uploadLinkedInConnections = async (contactId: string, file: File): 
       console.log(`${pair[0]}: ${pair[1] instanceof File ? 'File object' : pair[1]}`);
     }
     
-    // Get current user session for authentication
-    const { data: { session } } = await supabase.auth.getSession();
-    const authToken = session?.access_token;
-    
-    if (!authToken) {
-      console.warn("No authentication token available");
-    }
-    
-    // Call our secure Supabase Edge Function
+    // Call our secure Supabase Edge Function with the auth token
     const { data, error } = await supabase.functions.invoke('linkedin-import/' + contactId, {
       method: 'POST',
       body: formData,
       // Don't set Content-Type here; browser will set it with boundary for multipart/form-data
-      headers: authToken ? { 
-        'Authorization': `Bearer ${authToken}` 
-      } : undefined,
+      headers: { 
+        'Authorization': `Bearer ${session.access_token}` 
+      },
     });
     
     if (error) {
       console.error(`Upload failed:`, error);
+      
+      // Check for authentication errors
+      if (error.message && (
+          error.message.includes("JWT") || 
+          error.message.includes("401") || 
+          error.message.includes("auth") || 
+          error.message.includes("Authentication")
+      )) {
+        throw new Error("Authentication error: Please log in and try again");
+      }
+      
       throw new Error(`Edge function error: ${error.message || 'Unknown error'}`);
     }
     
