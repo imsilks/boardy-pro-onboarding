@@ -72,8 +72,12 @@ export function useContactId() {
       setContactId(storedId);
     } else {
       console.warn("No contactId found in URL or sessionStorage");
-      // Only show toast error if we're not on the homepage or success page
-      if (location.pathname !== '/' && location.pathname !== '/success') {
+      // Only show toast error if we're not on the homepage, index page, or success page
+      // This prevents the error from showing when users first land on the phone entry page
+      if (location.pathname !== '/' && 
+          location.pathname !== '/index' && 
+          location.pathname !== '/success' && 
+          !location.pathname.endsWith('/join-team')) {
         toast.error("Contact information is missing");
       }
     }
