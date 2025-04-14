@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import GlassCard from "@/components/GlassCard";
@@ -9,15 +8,13 @@ import { ArrowLeft, ArrowRight, CalendarCheck } from "lucide-react";
 import { useFadeIn } from "@/lib/animations";
 import { toast } from "sonner";
 import { useContactId } from "@/hooks/useContactId";
-
-const BOOKING_LINK_API_ENDPOINT = "https://hook.us1.make.com/lilxxslc2dg7l3kqvri9ky4a4fjodsdl";
+import { BOOKING_LINK_API_ENDPOINT } from "@/lib/api/config";
 
 const BookingLink = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
   
-  // Get contactId and teamSlug from useContactId hook
   const { 
     contactId: storedContactId, 
     teamName, 
@@ -31,19 +28,16 @@ const BookingLink = () => {
   const [saving, setSaving] = useState(false);
   const [teamSlug, setTeamSlug] = useState<string | null>(null);
 
-  // Animation states
   const fadeInTitle = useFadeIn("down", 100);
   const fadeInCard = useFadeIn("up", 300);
 
   useEffect(() => {
-    // Get contactId from URL query params or from the useContactId hook
     const searchParams = new URLSearchParams(location.search);
     const id = searchParams.get("contactId");
     
     if (id) {
       console.log("Found contactId in URL:", id);
       setContactId(id);
-      // Also update it in the hook's state and sessionStorage
       updateContactId(id);
     } else if (storedContactId) {
       console.log("Using contactId from useContactId hook:", storedContactId);
@@ -53,7 +47,6 @@ const BookingLink = () => {
       toast.error("Contact information is missing");
     }
 
-    // Get and store teamSlug
     const urlTeamSlug = params.teamSlug;
     if (urlTeamSlug) {
       console.log("Found teamSlug in URL parameters:", urlTeamSlug);
@@ -66,7 +59,6 @@ const BookingLink = () => {
   }, [location, storedContactId, params.teamSlug, updateContactId, getTeamSlug]);
 
   const handleSubmitBookingLink = async () => {
-    // First get the latest contactId using multiple sources
     const finalContactId = contactId || getContactId() || storedContactId;
     
     console.log("Submitting with contactId:", finalContactId);
@@ -77,7 +69,6 @@ const BookingLink = () => {
     }
     
     if (bookingLink) {
-      // Validate URL format if there's a value
       try {
         new URL(bookingLink);
       } catch (e) {
@@ -89,17 +80,17 @@ const BookingLink = () => {
     setSaving(true);
     try {
       if (bookingLink) {
-        console.log(`Saving booking link: ${bookingLink} for contact: ${finalContactId}`);
+        console.log(`Saving/updating booking link: ${bookingLink} for contact: ${finalContactId}`);
 
-        // Call the API to store the booking link
         const response = await fetch(BOOKING_LINK_API_ENDPOINT, {
-          method: 'POST',
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             contactId: finalContactId,
-            calendarBookingLink: bookingLink
+            calendarBookingLink: bookingLink,
+            operation: 'upsert'
           })
         });
         
@@ -110,14 +101,10 @@ const BookingLink = () => {
         }
         
         toast.success("Booking link saved successfully!");
-      } else {
-        console.log("No booking link provided, skipping save operation");
       }
 
-      // Get the final teamSlug to use in navigation
       const finalTeamSlug = teamSlug || getTeamSlug();
       
-      // Include the teamSlug in the navigation if it exists
       const path = finalTeamSlug ? `/${finalTeamSlug}/join-team` : `/join-team`;
       console.log(`Navigating to: ${path}?contactId=${finalContactId}`);
       
@@ -135,11 +122,9 @@ const BookingLink = () => {
   const handleSkip = () => {
     toast.info("Skipped adding a booking link");
 
-    // Get the final contactId and teamSlug for navigation
     const finalContactId = contactId || getContactId() || storedContactId;
     const finalTeamSlug = teamSlug || getTeamSlug();
     
-    // Include the teamSlug in the navigation if it exists
     const path = finalTeamSlug ? `/${finalTeamSlug}/join-team` : `/join-team`;
     
     if (finalContactId) {
@@ -159,7 +144,6 @@ const BookingLink = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-70" />
       
       <div className="relative w-full max-w-md flex flex-col items-center z-10">
-        {/* Header section */}
         <div className="text-center mb-12" style={fadeInTitle}>
           <div className="inline-flex items-center justify-center p-2 mb-4">
             <img src="/lovable-uploads/2c9ac40a-e01b-418a-91b7-724008309d66.png" alt="Boardy Pro Logo" className="h-16 w-16 object-contain" />
@@ -172,7 +156,6 @@ const BookingLink = () => {
           </p>
         </div>
 
-        {/* Booking link card */}
         <div className="w-full" style={fadeInCard}>
           <GlassCard className="p-6 sm:p-8 w-full" intensity="heavy" blur="lg">
             <div className="py-6 flex flex-col items-center justify-center space-y-6">
